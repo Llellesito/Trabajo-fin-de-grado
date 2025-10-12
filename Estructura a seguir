@@ -1,0 +1,43 @@
+proyecto/
+│
+├─ docker-compose.yml           # Tu Docker Compose actual
+├─ Dockerfile                   # Opcional, si personalizas PHP
+│
+├─ src/                         # Código PHP
+│   ├─ index.php                # Página principal / feed de publicaciones
+│   ├─ login.php                # Formulario de login
+│   ├─ register.php             # Registro de usuarios
+│   ├─ logout.php               # Cierre de sesión
+│   ├─ profile.php              # Perfil de usuario
+│   ├─ post.php                 # Mostrar o crear una publicación
+│   │
+│   ├─ includes/                # Archivos compartidos
+│   │   ├─ db.php               # Conexión PDO a MySQL
+│   │   ├─ header.php           # Cabecera HTML, menús, etc.
+│   │   └─ footer.php           # Pie de página
+│   │
+│   ├─ classes/                 # Lógica orientada a objetos (opcional)
+│   │   ├─ User.php             # Funciones de usuario (login, register, perfil)
+│   │   ├─ Post.php             # Funciones para publicaciones
+│   │   ├─ Comment.php          # Funciones para comentarios
+│   │   └─ Like.php             # Funciones para likes
+│   │
+│   ├─ actions/                 # Scripts que procesan formularios / AJAX
+│   │   ├─ login_action.php
+│   │   ├─ register_action.php
+│   │   ├─ post_action.php
+│   │   └─ like_action.php
+│   │
+│   ├─ assets/                  # Recursos estáticos
+│   │   ├─ css/
+│   │   │   └─ style.css
+│   │   ├─ js/
+│   │   │   └─ main.js
+│   │   └─ images/
+│   │
+│   └─ templates/               # Vistas parciales reutilizables
+│       ├─ post_card.php        # HTML de una publicación
+│       ├─ comment_card.php     # HTML de un comentario
+│       └─ notification.php     # Notificaciones
+│
+└─ README.md

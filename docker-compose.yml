@@ -1,9 +1,43 @@
-version: '3'
+version: "3"
 
 services:
-  web:
-      image: php:7.4-apache
-      ports:
-        - "80:80"
-      volumes:
-        - ./src:/var/www/html
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: ejemplo_db
+      MYSQL_USER: usuario
+      MYSQL_PASSWORD: usuario_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: rootpass
+    ports:
+      - "8081:80"
+    depends_on:
+      - db
+    volumes:
+      - ./php.ini:/usr/local/etc/php/php.ini
+
+  php:
+    image: php:7.4-apache
+    ports:
+      - "80:80"
+    volumes:
+      - ./src:/var/www/html
+    command: >
+      bash -c "docker-php-ext-install pdo pdo_mysql && apache2-foreground"
+
+volumes:
+  db_data:

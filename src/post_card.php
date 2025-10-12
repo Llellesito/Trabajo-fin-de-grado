@@ -1,0 +1,53 @@
+<?php
+require 'db.php';
+
+// Obtener usuarios
+$stmt = $pdo->query("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios");
+$usuarios = [];
+while ($u = $stmt->fetch(PDO::FETCH_ASSOC)) {
+    $usuarios[$u['id_usuario']] = $u; // Guardamos por id_usuario para acceso rápido
+}
+
+// Obtener publicaciones
+$tablaPublicacion = $pdo->query("SELECT id_publicacion, id_usuario, media, contenido_texto, fecha_publicacion, privacidad FROM publicaciones");
+$publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<?php foreach ($publicaciones as $post):
+    $user = $usuarios[$post['id_usuario']] ?? null; // Buscar usuario por id_usuario
+    if (!$user) continue; // Saltar si no hay usuario
+?>
+    <div class="post-card" style="border:1px solid #a0a0a0ff; padding:10px; margin-bottom:15px;">
+        <div class="post-header" style="display:flex; align-items:center;">
+            <img
+                src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>"
+                alt="Foto de perfil"
+                width="30"
+                style="margin-right: 10px; border-radius:50%;">
+
+            <h3 class="username" style="margin:0;">
+                <a href="perfil.php?id=<?= $user['id_usuario'] ?>"> @<?= htmlspecialchars($user['username']); ?></a>
+            </h3>
+            <div style="margin-left:auto; font-size:12px; color:#555;">
+                <?= htmlspecialchars($post['fecha_publicacion']); ?>
+            </div>
+        </div>
+
+        <div class="post-content" style="margin-top:10px;">
+            <?php if (!empty($post['media'])): ?>
+
+                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>" alt="imagen del post" width="400"
+                    style="margin: auto">
+
+            <?php endif; ?>
+            <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
+
+        </div>
+
+        <div class="post-footer" style="margin-top:10px;">
+            <button class="btn like-btn">❤️ Like</button>
+            <button class="btn comment-btn">💬 Comentar</button>
+        </div>
+    </div>
+
+<?php endforeach; ?>
