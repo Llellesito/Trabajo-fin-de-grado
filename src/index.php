@@ -15,7 +15,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
     <meta charset="UTF-8">
-    <title>Mi Red Social</title>
+    <title>Cesped Instantaneo</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="shortcut icon" href="icono.png">
 </head>
@@ -23,7 +23,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
 
     <header>
-        <h1 style="text-align:center;">📱 Base de datos conectada 🗣</h1>
+        <h1 style="text-align:center;">📱 Cesped Instantaneo 🗣</h1>
     </header>
 
     <?php include 'post_card.php'; ?>
