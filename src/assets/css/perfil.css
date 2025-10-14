@@ -2,12 +2,43 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #67a0f0;
+    background-color: #3b424d;
     margin: 0;
     padding: 20px;
+    color: #fff;
+}
+
+/* --- Perfil --- */
+.perfil {
+    display: flex;
+}
+.perfil h1 {
+    font-size: 20px;
+}
+.perfil ul li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.perfil ul li span {
+    font-size: 16px;
+    margin-right: 50px;
+}
+
+.biografia {
+    font-size: 16px;
+}
+
+hr {
+    margin-bottom: 25px;
 }
 
 /* --- Tarjeta de publicación --- */
+.contenido {
+    width: 60%;
+    margin: auto;
+}
+
 .publicaciones {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -20,7 +51,7 @@ body {
 }
 
 .post-card {
-    background-color: #fff;
+    background-color: #727272;
     border-radius: 10px;
     padding: 15px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -57,13 +88,13 @@ body {
 }
 
 .modal-content {
-    background: #4389eb;
+    background-color: #3b424d;
     border-radius: 12px;
     padding: 20px;
     max-width: 600px;
     width: 90%;
     color: #fff;
-    text-align:left;
+    text-align: left;
     position: relative;
 }
 

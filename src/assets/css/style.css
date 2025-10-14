@@ -2,18 +2,19 @@
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #67a0f0;
+    background-color: #3b424d;
     margin: 0;
     padding: 20px;
+    color: white;
 }
 
 /* --- Tarjeta de publicación --- */
 .post-card {
-    background-color: #fff;
+    background-color: #727272;
     border-radius: 10px;
     padding: 15px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     max-width: 600px;
     margin-left: auto;
     margin-right: auto;
@@ -33,6 +34,11 @@ body {
     margin-right: 10px;
 }
 
+.post-header a {
+    text-decoration: none;
+    color: #fff;
+}
+
 .username {
     margin: 0;
     font-size: 16px;
@@ -41,7 +47,7 @@ body {
 
 .date {
     font-size: 12px;
-    color: gray;
+    color: #fff;
 }
 
 /* Contenido del post */

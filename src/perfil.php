@@ -23,6 +23,26 @@ if (!$user) {
 $stmt = $pdo->prepare("SELECT id_publicacion, media, contenido_texto, fecha_publicacion FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
 $stmt->execute([$id_usuario]);
 $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// Numero de publicaciones
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total_publicaciones FROM publicaciones WHERE id_usuario = ?");
+$stmt->execute([$id_usuario]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$numPublicaciones = $result['total_publicaciones'];
+
+
+// Numero de seguidores
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total_seguidores FROM seguidores WHERE id_seguido = ?");
+$stmt->execute([$id_usuario]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalSeguidores = $result['total_seguidores'];
+
+// Numero de seguidos
+$stmt = $pdo->prepare("SELECT COUNT(*) AS total_seguidos FROM seguidores WHERE id_seguidor = ?");
+$stmt->execute([$id_usuario]);
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$totalSeguidos = $result['total_seguidos'];
 ?>
 
 <!DOCTYPE html>
@@ -85,32 +105,44 @@ $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
         });
     </script>
 
+    <div class="contenido">
 
-    <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
-    <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" style="border-radius:50%;">
-    <p><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
+        <div class="perfil">
+            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" style="border-radius:50%;">
+            <ul>
+                <li>
+                    <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
+                    <span><strong><?= $numPublicaciones ?></strong> publicaciones </span> <span><strong><?= $totalSeguidores ?></strong> seguidores </span> <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
+                </li>
+                <li>
+                    <p class="biografia"><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
+                </li>
+            </ul>
+        </div>
 
-    <h2>Publicaciones</h2>
+        <h2>Publicaciones</h2>
 
-    <div class="publicaciones">
-        <?php foreach ($publicaciones as $post): ?>
-            <div class="post-card">
-                <div class="post-content">
-                    <?php if (!empty($post['media'])): ?>
-                        <img
-                            src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
-                            alt="imagen del post"
-                            class="post-image"
-                            data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
-                            data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>">
-                    <?php endif; ?>
-                    <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
-                    <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
+        <hr>
+
+        <div class="publicaciones">
+            <?php foreach ($publicaciones as $post): ?>
+                <div class="post-card">
+                    <div class="post-content">
+                        <?php if (!empty($post['media'])): ?>
+                            <img
+                                src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
+                                alt="imagen del post"
+                                class="post-image"
+                                data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
+                                data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>">
+                        <?php endif; ?>
+                        <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
+                        <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
+                    </div>
                 </div>
-            </div>
-        <?php endforeach; ?>
+            <?php endforeach; ?>
+        </div>
     </div>
-
     <!-- Modal que se superpone -->
     <div id="postModal" class="modal">
         <div class="modal-content">
