@@ -2,54 +2,54 @@
 session_start();
 require 'db.php';
 
-// Verificar que se pasó id
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    echo "Usuario no especificado.";
-    exit;
+// Inicializar variables
+$user = null;
+$publicaciones = [];
+$numPublicaciones = 0;
+$totalSeguidores = 0;
+$totalSeguidos = 0;
+
+// Si hay sesión, cargamos datos del usuario
+if (isset($_SESSION['id_usuario'])) {
+    $id_usuario = $_SESSION['id_usuario'];
+
+    // Datos del usuario
+    $stmt = $pdo->prepare("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios WHERE id_usuario = ?");
+    $stmt->execute([$id_usuario]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($user) {
+        // Publicaciones
+        $stmt = $pdo->prepare("SELECT id_publicacion, media, contenido_texto, fecha_publicacion FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
+        $stmt->execute([$id_usuario]);
+        $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Contadores
+        $numPublicaciones = $pdo->prepare("SELECT COUNT(*) FROM publicaciones WHERE id_usuario = ?");
+        $numPublicaciones->execute([$id_usuario]);
+        $numPublicaciones = $numPublicaciones->fetchColumn();
+
+        $totalSeguidores = $pdo->prepare("SELECT COUNT(*) FROM seguidores WHERE id_seguido = ?");
+        $totalSeguidores->execute([$id_usuario]);
+        $totalSeguidores = $totalSeguidores->fetchColumn();
+
+        $totalSeguidos = $pdo->prepare("SELECT COUNT(*) FROM seguidores WHERE id_seguidor = ?");
+        $totalSeguidos->execute([$id_usuario]);
+        $totalSeguidos = $totalSeguidos->fetchColumn();
+    }
 }
-
-$id_usuario = (int)$_GET['id'];
-
-// Datos del usuario
-$stmt = $pdo->prepare("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios WHERE id_usuario = ?");
-$stmt->execute([$id_usuario]);
-$user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-if (!$user) {
-    echo "Usuario no encontrado.";
-    exit;
-}
-
-// Obtener publicaciones del usuario
-$stmt = $pdo->prepare("SELECT id_publicacion, media, contenido_texto, fecha_publicacion FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
-$stmt->execute([$id_usuario]);
-$publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-
-// Numero de publicaciones
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total_publicaciones FROM publicaciones WHERE id_usuario = ?");
-$stmt->execute([$id_usuario]);
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-$numPublicaciones = $result['total_publicaciones'];
-
-
-// Numero de seguidores
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total_seguidores FROM seguidores WHERE id_seguido = ?");
-$stmt->execute([$id_usuario]);
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-$totalSeguidores = $result['total_seguidores'];
-
-
-// Numero de seguidos
-$stmt = $pdo->prepare("SELECT COUNT(*) AS total_seguidos FROM seguidores WHERE id_seguidor = ?");
-$stmt->execute([$id_usuario]);
-$result = $stmt->fetch(PDO::FETCH_ASSOC);
-$totalSeguidos = $result['total_seguidos'];
-
-
-
 ?>
 
+
+<?php if ($user): ?>
+    <h1><?= htmlspecialchars($user['nombre']) ?></h1>
+    <p>Publicaciones: <?= $numPublicaciones ?></p>
+    <?php foreach ($publicaciones as $post): ?>
+        <p><?= htmlspecialchars($post['contenido_texto']) ?></p>
+    <?php endforeach; ?>
+<?php else: ?>
+    <p>No hay usuario logueado.</p>
+<?php endif; ?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -125,7 +125,9 @@ $totalSeguidos = $result['total_seguidos'];
             <ul>
                 <li>
                     <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
-                    <span><strong><?= $numPublicaciones ?></strong> publicaciones </span> <span><strong><?= $totalSeguidores ?></strong> seguidores </span> <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
+                    <span><strong><?= $numPublicaciones ?></strong> publicaciones </span>
+                    <span><strong><?= $totalSeguidores ?></strong> seguidores </span>
+                    <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
                 </li>
                 <li>
                     <p class="biografia"><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
@@ -133,9 +135,29 @@ $totalSeguidos = $result['total_seguidos'];
             </ul>
         </div>
 
-        <h2>Publicaciones</h2>
+        <!-- 🔹 AQUI agregas el código -->
+        <?php if ($esPropio): ?>
+            <a href="editar_perfil.php">Editar perfil</a>
+        <?php else: ?>
+            <form method="post" action="seguir.php">
+                <input type="hidden" name="id_seguido" value="<?= $id_usuario ?>">
+                <button type="submit">Seguir</button>
+            </form>
+        <?php endif; ?>
+        <?php
+        $esPropio = isset($_SESSION['id_usuario']) && $_SESSION['id_usuario'] == $id_usuario;
+        if ($esPropio): ?>
+            <div style="text-align:center; margin: 15px 0;">
+                <a href="editar_perfil.php" style="color:white; background:#2b7a2b; padding:10px 15px; border-radius:8px; text-decoration:none;">
+                    ✏️ Editar perfil
+                </a>
+            </div>
+        <?php endif; ?>
+        <!-- 🔹 Fin de la parte nueva -->
 
+        <h2>Publicaciones</h2>
         <hr>
+
 
         <div class="publicaciones">
             <?php foreach ($publicaciones as $post): ?>

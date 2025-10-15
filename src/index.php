@@ -1,4 +1,5 @@
 <?php
+session_start();
 require 'db.php';
 
 $sql = "SELECT p.id_publicacion, p.contenido_texto, p.fecha_publicacion,
@@ -24,6 +25,21 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <header>
         <h1 style="text-align:center;">📱 Cesped Instantaneo 🗣</h1>
+        <nav style="text-align:center; margin-top:10px;">
+            <?php if (isset($_SESSION['usuario'])): ?>
+                <span style="font-size: 18px; color: white;">
+
+                    Bienvenido, <a href="miPerfil.php?id=<?php echo $_SESSION['id_usuario']; ?>" 
+                   style="color: #90ee90; text-decoration: underline;">
+                   <?php echo htmlspecialchars($_SESSION['usuario']); ?>
+
+                </span>
+                <a href="logout.php" style="font-size: 20px; color: white; margin-left: 10px;">Cerrar sesión</a>
+            <?php else: ?>
+                <a href="registro.php" style="font-size: 20px; color: white; margin-right:10px;">Registrarse</a>
+                <a href="login.php" style="font-size: 20px; color: white;">Inicia sesión</a>
+            <?php endif; ?>
+        </nav>
     </header>
 
     <?php include 'post_card.php'; ?>

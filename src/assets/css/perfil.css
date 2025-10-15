@@ -12,14 +12,17 @@ body {
 .perfil {
     display: flex;
 }
+
 .perfil h1 {
     font-size: 20px;
 }
+
 .perfil ul li {
     list-style: none;
     padding: 0;
     margin: 0;
 }
+
 .perfil ul li span {
     font-size: 16px;
     margin-right: 50px;
@@ -107,4 +110,33 @@ hr {
 
 .close {
     font-size: 20px;
+}
+
+/* --- Botones like y comentarios --- */
+.modal-content .btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.2s;
+    margin-bottom: 5px;
+}
+
+#modal-likes {
+    background: #ff4d4d;
+    color: #fff;
+}
+
+#modal-likes:hover {
+    background: #e63939;
+}
+
+#modal-comments {
+    background: #1877f2;
+    color: #fff;
+}
+
+#modal-comments:hover {
+    background: #0f5dc7;
 }
