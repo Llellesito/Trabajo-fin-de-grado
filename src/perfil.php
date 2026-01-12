@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php';
+require 'includes/db.php';
 
 // Verificar que se pasó id
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -121,7 +121,7 @@ $totalSeguidos = $result['total_seguidos'];
     <div class="contenido">
 
         <div class="perfil">
-            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" style="border-radius:50%;">
+            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
             <ul>
                 <li>
                     <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
@@ -158,6 +158,7 @@ $totalSeguidos = $result['total_seguidos'];
                             <img
                                 src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
                                 class="post-image"
+                                width="400" height="400"
                                 data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
                                 data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
                                 data-likes="<?= $totalLikes ?>"
@@ -170,6 +171,8 @@ $totalSeguidos = $result['total_seguidos'];
             <?php endforeach; ?>
         </div>
     </div>
+
+
     <!-- Modal que se superpone -->
     <div id="postModal" class="modal">
         <div class="modal-content">

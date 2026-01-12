@@ -13,7 +13,6 @@ while ($u = $stmt->fetch(PDO::FETCH_ASSOC)) {
 $tablaPublicacion = $pdo->query("SELECT id_publicacion, id_usuario, media, contenido_texto, fecha_publicacion, privacidad FROM publicaciones");
 $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
 
-
 ?>
 
 
@@ -33,10 +32,10 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $totalComentarios = $result['total_comentarios'];
 ?>
-    <div class="post-card" style="border:1px solid #a0a0a0ff; padding:10px; margin-bottom:15px;">
+    <div class="post-card">
         <div class="post-header" style="display:flex; align-items:center;">
             <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil"
-                 width="30" style="margin-right:10px; border-radius:50%;">
+                 width="30" height="30" style="margin-right:10px; border-radius:50%;">
             <h3 class="username" style="margin:0;">
                 <a href="perfil.php?id=<?= $user['id_usuario'] ?>"> @<?= htmlspecialchars($user['username']); ?></a>
             </h3>
@@ -47,12 +46,12 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="post-content" style="margin-top:10px;">
             <?php if (!empty($post['media'])): ?>
-                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>" alt="imagen del post" width="400" style="margin:auto">
+                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>" alt="imagen del post" width="400" height="400" style="margin:auto">
             <?php endif; ?>
             <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
         </div>
 
-        <div class="post-footer" style="margin-top:10px;">
+        <div class="post-footer">
             <button class="btn like-btn"><?= $totalLikes ?> ❤️ Like</button>
             <button class="btn comment-btn"><?= $totalComentarios ?> 💬 Comentar</button>
         </div>

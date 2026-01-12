@@ -1,13 +1,12 @@
-<?php require ('includes/db.php') ?>
+<?php require('includes/db.php') ?>
 
 <header>
-    <h1 style="text-align:center;">8mangos</h1>
-    <nav style="text-align:center; margin-top:10px;">
+    <h1>8mangos</h1>
+    <nav>
         <?php if (isset($_SESSION['usuario'])): ?>
-            <span style="font-size: 18px; color: white;">
+            <span>
 
-                Bienvenido, <a href="miPerfil.php?id=<?php echo $_SESSION['id_usuario']; ?>"
-                    style="color: #90ee90; text-decoration: underline;">
+                Bienvenido, <a href="miPerfil.php?id=<?php echo $_SESSION['id_usuario']; ?>">
                     <?php echo htmlspecialchars($_SESSION['usuario']); ?>
 
             </span>
