@@ -23,9 +23,11 @@ proyecto/
 │   │   └─ Like.php             # Funciones para likes
 │   │
 │   ├─ actions/                 # Scripts que procesan formularios / AJAX
-│   │   ├─ login_action.php
+│   │   ├─ login.php
+│   │   ├─ logout.php
 │   │   ├─ register_action.php
 │   │   ├─ post_action.php
+│   │   ├─ editar_perfil.php
 │   │   └─ like_action.php
 │   │
 │   ├─ assets/                  # Recursos estáticos

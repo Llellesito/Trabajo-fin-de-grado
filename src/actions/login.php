@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // Conexión PDO
+require '../includes/db.php'; // Conexión PDO
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = trim($_POST['user']); // username o email
@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['id_usuario'] = $usuario['id_usuario'];
             $_SESSION['usuario'] = $usuario['username'];
 
-            header("Location: miPerfil.php");
+            header("Location: ../index.php");
             exit;
         } else {
             $error = "Contraseña incorrecta.";

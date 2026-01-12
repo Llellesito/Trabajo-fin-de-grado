@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php';
+require 'includes/db.php';
 
 // Inicializar variables
 $user = null;
@@ -137,7 +137,7 @@ if (isset($_SESSION['id_usuario'])) {
 
         <!-- 🔹 AQUI agregas el código -->
         <?php if ($esPropio): ?>
-            <a href="editar_perfil.php">Editar perfil</a>
+            <a href="actions/WIP_editar_perfil.php">Editar perfil</a>
         <?php else: ?>
             <form method="post" action="seguir.php">
                 <input type="hidden" name="id_seguido" value="<?= $id_usuario ?>">
@@ -148,7 +148,7 @@ if (isset($_SESSION['id_usuario'])) {
         $esPropio = isset($_SESSION['id_usuario']) && $_SESSION['id_usuario'] == $id_usuario;
         if ($esPropio): ?>
             <div style="text-align:center; margin: 15px 0;">
-                <a href="editar_perfil.php" style="color:white; background:#2b7a2b; padding:10px 15px; border-radius:8px; text-decoration:none;">
+                <a href="actions/WIP_editar_perfil.php" style="color:white; background:#2b7a2b; padding:10px 15px; border-radius:8px; text-decoration:none;">
                     ✏️ Editar perfil
                 </a>
             </div>

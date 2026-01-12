@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php'; // Archivo donde definiste $pdo
+require '../includes/db.php'; // Conexión PDO
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'];

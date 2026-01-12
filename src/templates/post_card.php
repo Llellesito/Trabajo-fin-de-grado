@@ -1,5 +1,5 @@
 <?php
-require 'db.php';
+require ('includes/db.php');
 
 // Obtener usuarios
 $stmt = $pdo->query("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios");
