@@ -16,13 +16,13 @@ proyecto/
 │   │   ├─ header.php           # Cabecera HTML, menús, etc.
 │   │   └─ footer.php           # Pie de página
 │   │
-│   ├─ classes/                 # Lógica orientada a objetos (opcional)
+│   ├─ classes/                 # Lógica orientada a objetos
 │   │   ├─ User.php             # Funciones de usuario (login, register, perfil)
 │   │   ├─ Post.php             # Funciones para publicaciones
 │   │   ├─ Comment.php          # Funciones para comentarios
 │   │   └─ Like.php             # Funciones para likes
 │   │
-│   ├─ actions/                 # Scripts que procesan formularios / AJAX
+│   ├─ actions/                 # Scripts que procesan formularios
 │   │   ├─ login.php
 │   │   ├─ logout.php
 │   │   ├─ register_action.php

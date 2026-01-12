@@ -1,7 +1,7 @@
 <?php require('includes/db.php') ?>
 
 <header>
-    <h1>8mangos</h1>
+    <h1>8Mangos</h1>
     <nav>
         <?php if (isset($_SESSION['usuario'])): ?>
             <span>
