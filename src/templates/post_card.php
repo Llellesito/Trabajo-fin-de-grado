@@ -1,5 +1,5 @@
 <?php
-require ('includes/db.php');
+require('includes/db.php');
 
 // Obtener usuarios
 $stmt = $pdo->query("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios");
@@ -35,7 +35,7 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
     <div class="post-card">
         <div class="post-header" style="display:flex; align-items:center;">
             <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil"
-                 width="30" height="30" style="margin-right:10px; border-radius:50%;">
+                width="30" height="30" style="margin-right:10px; border-radius:50%;">
             <h3 class="username" style="margin:0;">
                 <a href="perfil.php?id=<?= $user['id_usuario'] ?>"> @<?= htmlspecialchars($user['username']); ?></a>
             </h3>
@@ -52,8 +52,8 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="post-footer">
-            <button class="btn like-btn"><?= $totalLikes ?> ❤️ Like</button>
-            <button class="btn comment-btn"><?= $totalComentarios ?> 💬 Comentar</button>
+            <button class="btn like-btn"><?= $totalLikes ?> ❤️ </button>
+            <button class="btn comment-btn"><?= $totalComentarios ?> 💬 </button>
         </div>
     </div>
 <?php endforeach; ?>

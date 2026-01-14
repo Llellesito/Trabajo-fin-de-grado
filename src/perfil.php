@@ -83,6 +83,7 @@ $totalSeguidos = $result['total_seguidos'];
     </div>
 
     <script>
+        // JAVA SCRIPT PARA ENFOCARSE EN LA PUBLICACIONES DENTRO DE LOS PERFILES
         document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById("postModal");
             const modalImg = document.getElementById("modal-img");
@@ -103,8 +104,8 @@ $totalSeguidos = $result['total_seguidos'];
                     modalDate.textContent = img.getAttribute("data-date");
 
                     // Mostrar likes y comentarios
-                    document.getElementById("modal-likes").textContent = img.getAttribute("data-likes") + " ❤️ Like";
-                    document.getElementById("modal-comments").textContent = img.getAttribute("data-comments") + " 💬 Comentar";
+                    document.getElementById("modal-likes").textContent = img.getAttribute("data-likes") + " ❤️ ";
+                    document.getElementById("modal-comments").textContent = img.getAttribute("data-comments") + " 💬 ";
                 });
             });
 
@@ -152,19 +153,21 @@ $totalSeguidos = $result['total_seguidos'];
                 $totalComentarios = $result['total_comentarios'];
                 ?>
 
+                <!-- TODOS LOS POST DEL PERFIL -->
                 <div class="post-card">
                     <div class="post-content">
                         <?php if (!empty($post['media'])): ?>
                             <img
                                 src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
                                 class="post-image"
-                                width="400" height="400"
                                 data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
                                 data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
                                 data-likes="<?= $totalLikes ?>"
                                 data-comments="<?= $totalComentarios ?>">
                         <?php endif; ?>
+                        <!--Contenido del texto de las publicaciones de los posts-->
                         <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
+                        <!--Fecha del post-->
                         <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
                     </div>
                 </div>
