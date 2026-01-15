@@ -40,6 +40,7 @@ if (isset($_SESSION['id_usuario'])) {
 }
 ?>
 
+<!-- UNICAMENTE PARA PRUEBAS
 
 <?php if ($user): ?>
     <h1><?= htmlspecialchars($user['nombre']) ?></h1>
@@ -50,13 +51,14 @@ if (isset($_SESSION['id_usuario'])) {
 <?php else: ?>
     <p>No hay usuario logueado.</p>
 <?php endif; ?>
+-->
 
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($user['nombre']) ?></title>
+    <title>@<?= htmlspecialchars($user['nombre']) ?> - 8Mangos</title>
     <link rel="stylesheet" href="assets/css/perfil.css">
     <link rel="shortcut icon" href="icono.png">
 </head>

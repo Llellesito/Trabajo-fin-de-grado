@@ -56,7 +56,7 @@ $totalSeguidos = $result['total_seguidos'];
 
 <head>
     <meta charset="UTF-8">
-    <title><?= htmlspecialchars($user['nombre']) ?></title>
+    <title>@<?= htmlspecialchars($user['nombre']) ?> - 8Mangos</title>
     <link rel="stylesheet" href="assets/css/perfil.css">
     <link rel="shortcut icon" href="icono.png">
 </head>

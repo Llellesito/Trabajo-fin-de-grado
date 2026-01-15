@@ -39,7 +39,7 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
             <h3 class="username" style="margin:0;">
                 <a href="perfil.php?id=<?= $user['id_usuario'] ?>"> @<?= htmlspecialchars($user['username']); ?></a>
             </h3>
-            <div style="margin-left:auto; font-size:12px; color:#555;">
+            <div style="margin-left:auto; font-size:12px; color:#fff;">
                 <?= htmlspecialchars($post['fecha_publicacion']); ?>
             </div>
         </div>
