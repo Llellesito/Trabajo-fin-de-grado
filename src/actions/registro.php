@@ -46,48 +46,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <head>
     <meta charset="UTF-8">
-    <title>Registro</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f2f2f2;
-        }
-
-        form {
-            background: #fff;
-            padding: 20px;
-            margin: 50px auto;
-            width: 350px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-        }
-
-        button {
-            padding: 10px;
-            width: 100%;
-            background: #4CAF50;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <link rel="stylesheet" href="../assets/css/logeo.css">
+    <title>Registro - 8Mangos</title>
 </head>
 
 <body>
     <form action="registro.php" method="POST" id="formRegistro">
         <h2>Registrarse</h2>
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="text" name="nombre" placeholder="Nombre" required>
-        <input type="email" name="email" placeholder="Correo electrónico" required>
-        <input type="password" name="password" id="password" placeholder="Contraseña" required>
-        <input type="password" name="password2" id="password2" placeholder="Repetir contraseña" required>
-        <button type="submit">Registrarse</button>
+        <input type="text" name="username" placeholder="Username" size="50" required><br>
+        <input type="text" name="nombre" placeholder="Nombre" size="50" required><br>
+        <input type="email" name="email" placeholder="Correo electrónico" size="50" required><br>
+        <input type="password" name="password" id="password" placeholder="Contraseña" size="50" required><br>
+        <input type="password" name="password2" id="password2" placeholder="Repetir contraseña" size="50" required><br>
+        <input type="submit" class="boton" name="enviar" id="enviar" value="Iniciar sesión">
+        <p>¿Ya tienes una cuenta? <a href="login.php">Inicia sesión</a></p>
     </form>
 
     <script>

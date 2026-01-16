@@ -62,7 +62,7 @@ $totalSeguidos = $result['total_seguidos'];
 </head>
 
 <body>
-    <?php echo htmlspecialchars($_SESSION['usuario']); ?><?php echo htmlspecialchars($_SESSION['usuario']); ?><?php echo htmlspecialchars($_SESSION['usuario']); ?>
+    <?php echo htmlspecialchars($_SESSION['usuario']) ?><?php echo htmlspecialchars($_SESSION['usuario']); ?><?php echo htmlspecialchars($_SESSION['usuario']); ?>
     <!-- Modal -->
     <div id="postModal" class="modal">
         <div class="modal-content">
@@ -70,11 +70,12 @@ $totalSeguidos = $result['total_seguidos'];
             <img id="modal-img" class="modal-img" alt="">
             <div class="modal-info">
                 <br>
-                <button id="modal-likes" class="btn"></button>
-                <button id="modal-comments" class="btn"></button>
+                <div class="boton"><button id="modal-like" class="like"></button></div>
+                <div class="boton"><button id="modal-comentar" class="comentar"></button></div>
 
                 <br>
-                <span><strong>@<?= htmlspecialchars($user['username']) ?></strong></span>
+                <!-- --- IMPORTANTE --- -->
+                <span><strong><a href="perfil.php?id=<?= $user['id_usuario'] ?>">@<?= htmlspecialchars($user['username']); ?></a></strong></span>
                 <span id="modal-text"></span>
                 <p id="modal-text"></p>
                 <small id="modal-date"></small>
@@ -83,7 +84,7 @@ $totalSeguidos = $result['total_seguidos'];
     </div>
 
     <script>
-        // JAVA SCRIPT PARA ENFOCARSE EN LA PUBLICACIONES DENTRO DE LOS PERFILES
+        // ----- JAVA SCRIPT PARA ENFOCARSE EN LA PUBLICACIONES DENTRO DE LOS PERFILES -----
         document.addEventListener("DOMContentLoaded", () => {
             const modal = document.getElementById("postModal");
             const modalImg = document.getElementById("modal-img");
@@ -91,11 +92,11 @@ $totalSeguidos = $result['total_seguidos'];
             const modalDate = document.getElementById("modal-date");
             const closeBtn = document.querySelector(".close");
 
-            // Buscar todas las imágenes
+            // --- Buscar todas las imágenes ---
             const images = document.querySelectorAll(".post-image");
             console.log("Encontradas:", images.length, "imágenes");
 
-            // Agregar eventos de clic
+            // --- Agregar eventos de clic ---
             images.forEach(img => {
                 img.addEventListener("click", () => {
                     modal.style.display = "flex";
@@ -103,16 +104,16 @@ $totalSeguidos = $result['total_seguidos'];
                     modalText.textContent = img.getAttribute("data-text");
                     modalDate.textContent = img.getAttribute("data-date");
 
-                    // Mostrar likes y comentarios
-                    document.getElementById("modal-likes").textContent = img.getAttribute("data-likes") + " ❤️ ";
-                    document.getElementById("modal-comments").textContent = img.getAttribute("data-comments") + " 💬 ";
+                    // --- Mostrar likes y comentarios ---
+                    document.getElementById("modal-like").textContent = " ❤️ " + img.getAttribute("data-likes");
+                    document.getElementById("modal-comentar").textContent = " 💬 " + img.getAttribute("data-comments");
                 });
             });
 
-            // Cerrar con la X
+            // --- Cerrar con la X ---
             closeBtn.addEventListener("click", () => modal.style.display = "none");
 
-            // Cerrar al hacer clic fuera
+            // --- Cerrar al hacer clic fuera ---
             modal.addEventListener("click", e => {
                 if (e.target === modal) modal.style.display = "none";
             });
@@ -141,19 +142,19 @@ $totalSeguidos = $result['total_seguidos'];
         <div class="publicaciones">
             <?php foreach ($publicaciones as $post): ?>
                 <?php
-                // Numero de likes
+                // --- Numero de likes ---
                 $stmt = $pdo->prepare("SELECT COUNT(*) AS total_likes FROM likes WHERE id_publicacion = ?");
                 $stmt->execute([$post['id_publicacion']]);
                 $totalLikes = $stmt->fetchColumn();
 
-                // Numero de comentarios
+                // --- Numero de comentarios ---
                 $stmt = $pdo->prepare("SELECT COUNT(*) AS total_comentarios FROM comentarios WHERE id_publicacion = ?");
                 $stmt->execute([$post['id_publicacion']]);
                 $result = $stmt->fetch(PDO::FETCH_ASSOC);
                 $totalComentarios = $result['total_comentarios'];
                 ?>
 
-                <!-- TODOS LOS POST DEL PERFIL -->
+                <!-- --- TODOS LOS POST DEL PERFIL --- -->
                 <div class="post-card">
                     <div class="post-content">
                         <?php if (!empty($post['media'])): ?>
@@ -163,11 +164,11 @@ $totalSeguidos = $result['total_seguidos'];
                                 data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
                                 data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
                                 data-likes="<?= $totalLikes ?>"
-                                data-comments="<?= $totalComentarios ?>">
+                                data-comments="<?= $totalComentarios; ?>">
                         <?php endif; ?>
-                        <!--Contenido del texto de las publicaciones de los posts-->
+                        <!-- --- Contenido del texto de las publicaciones de los posts --- -->
                         <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
-                        <!--Fecha del post-->
+                        <!-- --- Fecha del post --- -->
                         <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
                     </div>
                 </div>
@@ -176,7 +177,7 @@ $totalSeguidos = $result['total_seguidos'];
     </div>
 
 
-    <!-- Modal que se superpone -->
+    <!-- --- Modal que se superpone --- -->
     <div id="postModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>

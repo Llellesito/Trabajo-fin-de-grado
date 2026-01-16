@@ -52,8 +52,8 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="post-footer">
-            <button class="btn like-btn"><?= $totalLikes ?> ❤️ </button>
-            <button class="btn comment-btn"><?= $totalComentarios ?> 💬 </button>
+            <div class="boton"><button class="like"> ❤️ </button><strong><?= $totalLikes ?></strong></div>
+            <div class="boton"><button class="comentar"> 💬 </button><strong><?= $totalComentarios ?></strong></div>
         </div>
     </div>
 <?php endforeach; ?>

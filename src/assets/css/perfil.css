@@ -1,10 +1,16 @@
 /* --- General --- */
+@import url("variables.css");
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #23262b;
+    background-color: var(--bg-deep);
     margin: 0;
-    color: #fff;
+    color: var(--texto-general);
+}
+
+a {
+    text-decoration: none;
+    color: var(--texto-general);
 }
 
 hr {
@@ -41,7 +47,7 @@ hr {
 
 /* --- Tarjeta de publicación --- */
 .contenido {
-    width: 70%;
+    width: 55%;
     margin: auto;
 }
 
@@ -52,7 +58,7 @@ hr {
 }
 
 .post-card {
-    background-color: #727272;
+    background-color: var(--bg-card);
     width: 300px;
     border-radius: 10px;
     padding: 12px;
@@ -79,6 +85,7 @@ hr {
 }
 
 .post-image {
+    border-radius: 10px;
     width: 100%;
 }
 
@@ -89,19 +96,20 @@ hr {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.85);
+    background-color: rgba(0, 0, 0, 0.85);
     z-index: 9999;
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
-    background-color: #3b424d;
-    border-radius: 12px;
+    background-color: var(--bg-card);
+    box-shadow: 5px 4px 5px 0px var(--border-soft);
+    border-radius: 10px;
     padding: 20px;
     max-width: 600px;
     width: 90%;
-    color: #fff;
+    color: var(--texto-general);
     text-align: left;
     position: relative;
 }
@@ -119,29 +127,32 @@ hr {
 
 /* --- Botones like y comentarios --- */
 .modal-content .btn {
-    padding: 8px 12px;
-    border: none;
+    padding: 5px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
-    margin-bottom: 5px;
+    font-size: 16px;
 }
 
-#modal-likes {
-    background: #ff4d4d;
-    color: #fff;
+#modal-like {
+    font-size: 16px;
+    background: none;
+    color: var(--texto-general);
+    border: none;
 }
 
-#modal-likes:hover {
-    background: #e63939;
+#modal-like:hover {
+    box-shadow: 5px 5px 5px 1px var(--magenta-main);
+    transition: 100ms;
 }
 
-#modal-comments {
-    background: #1877f2;
-    color: #fff;
+#modal-comentar {
+    font-size: 16px;
+    color: var(--texto-general);
+    border: none;
+    background: none;
 }
 
-#modal-comments:hover {
-    background: #0f5dc7;
+#modal-comentar:hover {
+    box-shadow: 5px 5px 5px 1px var(--magenta-main);
+    transition: 100ms;
 }

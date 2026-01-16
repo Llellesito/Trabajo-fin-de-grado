@@ -1,17 +1,18 @@
 /* --- General --- */
+@import url("variables.css");
 
 body {
     font-family: Arial, sans-serif;
-    background-color: #23262b;
+    background-color: var(--bg-deep);
     margin: 0;
     color: white;
 }
 
 /* --- Tarjeta de publicación --- */
 .post-card {
-    background-color: #727272;
+    background-color: var(--bg-card);
     border-radius: 10px;
-    border: 1px solid #a0a0a0ff;
+    border: 1px solid var(--shadow-posts);
     padding: 15px;
     margin-bottom: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -19,6 +20,10 @@ body {
     margin-left: auto;
     margin-right: auto;
     margin-bottom: 15px;
+}
+
+img {
+    border-radius: 10px;
 }
 
 /*Cabecera de los posts*/
@@ -65,7 +70,7 @@ header span a {
 
 a {
     text-decoration: none;
-    color: #fff;
+    color: var(--texto-general);
 }
 
 .username {
@@ -76,7 +81,7 @@ a {
 
 .date {
     font-size: 12px;
-    color: #fff;
+    color: var(--texto-general);
 }
 
 /* Contenido del post */
@@ -88,13 +93,6 @@ a {
     margin: 10px 0;
 }
 
-.post-image {
-    width: 400px;
-    height: 400px;
-    border-radius: 10px;
-    margin-top: 10px;
-}
-
 /* Footer del post */
 .post-footer {
     margin-top: 10px;
@@ -102,29 +100,33 @@ a {
     gap: 10px;
 }
 
-.btn {
-    padding: 8px 12px;
-    border: none;
+/* --- Botones de los Posts --- */
+
+.boton {
+    padding: 5px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 14px;
-    transition: background 0.2s;
+    font-size: 16px;
 }
 
-.like-btn {
-    background: #ff4d4d;
-    color: #fff;
+.like {
+    font-size: 16px;
+    border: none;
+    background: none;
 }
 
-.like-btn:hover {
-    background: #e63939;
+.like:hover {
+    box-shadow: 5px 5px 5px 1px var(--magenta-main);
+    transition: 100ms;
 }
 
-.comment-btn {
-    background: #1877f2;
-    color: #fff;
+.comentar {
+    font-size: 16px;
+    border: none;
+    background: none;
 }
 
-.comment-btn:hover {
-    background: #0f5dc7;
+.comentar:hover {
+    box-shadow: 5px 5px 5px 1px var(--magenta-main);
+    transition: 100ms;
 }

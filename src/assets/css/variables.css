@@ -1,0 +1,33 @@
+/* variables.css */
+:root {
+    /* Fondos */
+    --bg-deep: #05070a;
+    --bg-card: #111425;
+
+    /* Azules (Primarios) */
+    --blue-main: #1a4fad;
+    --blue-light: #4a90e2;
+
+    /* Magentas (Acentos/Interacción) */
+    --magenta-main: #d12c7d;
+    --magenta-glow: #ff5dae;
+    --magenta-glow-claro: #fa95c8;
+
+    /* Funcionales */
+    --success-green: #4caf50;
+    --border-soft: #2d3139;
+
+    /* Botones */
+    --blue-light-hover: #80afe5;
+    --blue-light-click: #2f8ffc;
+
+    /* Sombras*/
+    --shadow-posts: #a0a0a0ff;
+
+
+    /* Tipografía */
+    --texto-general: #fff;
+    --text-high: #f5f6f7;
+    --text-low: #71767c;
+    --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
