@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->execute();
 
         $_SESSION['usuario'] = $username;
-        header("Location: perfil.php");
+        header("Location: ../index.php");
         exit;
     } catch (PDOException $e) {
         if ($e->getCode() == 23000) {

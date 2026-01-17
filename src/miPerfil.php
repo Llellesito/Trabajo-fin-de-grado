@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'includes/db.php';
+require 'includes/lib.php';
 
 // Inicializar variables
 $user = null;
@@ -123,7 +124,8 @@ if (isset($_SESSION['id_usuario'])) {
     <div class="contenido">
 
         <div class="perfil">
-            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" style="border-radius:50%;">
+            <img src="<?= (!empty($user['foto_perfil'])) ? 'data:image/jpeg;base64,' . base64_encode($user['foto_perfil'])  : 'assets/images/default.png'; ?>"
+                alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
             <ul>
                 <li>
                     <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
@@ -137,25 +139,9 @@ if (isset($_SESSION['id_usuario'])) {
             </ul>
         </div>
 
-        <!-- 🔹 AQUI agregas el código -->
-        <?php if ($esPropio): ?>
-            <a href="actions/WIP_editar_perfil.php">Editar perfil</a>
-        <?php else: ?>
-            <form method="post" action="seguir.php">
-                <input type="hidden" name="id_seguido" value="<?= $id_usuario ?>">
-                <button type="submit">Seguir</button>
-            </form>
-        <?php endif; ?>
-        <?php
-        $esPropio = isset($_SESSION['id_usuario']) && $_SESSION['id_usuario'] == $id_usuario;
-        if ($esPropio): ?>
-            <div style="text-align:center; margin: 15px 0;">
-                <a href="actions/WIP_editar_perfil.php" style="color:white; background:#2b7a2b; padding:10px 15px; border-radius:8px; text-decoration:none;">
-                    ✏️ Editar perfil
-                </a>
-            </div>
-        <?php endif; ?>
-        <!-- 🔹 Fin de la parte nueva -->
+        <!-- FUNCION EXPERIMENTAL -->
+        <?php echo renderizarBotonPerfil($user['id_usuario'], $_SESSION['id_usuario']); ?>
+        <!-- FUNCION EXPERIMENTAL -->
 
         <h2>Publicaciones</h2>
         <hr>

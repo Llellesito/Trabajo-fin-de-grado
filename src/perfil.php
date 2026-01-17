@@ -1,7 +1,9 @@
 <?php
 session_start();
 require 'includes/db.php';
-
+require 'includes/lib.php';
+require_once 'clases/User.php';
+require_once __DIR__ . '/clases/User.php';
 // Verificar que se pasó id
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
     echo "Usuario no especificado.";
@@ -134,6 +136,8 @@ $totalSeguidos = $result['total_seguidos'];
                 </li>
             </ul>
         </div>
+
+        <?php echo renderizarBotonPerfil($user['id_usuario'], $pdo); ?>
 
         <h2>Publicaciones</h2>
 

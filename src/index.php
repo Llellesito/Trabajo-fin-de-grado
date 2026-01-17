@@ -2,6 +2,10 @@
 session_start();
 require 'includes/db.php';
 
+if (!isset($_SESSION['usuario'])) {
+    header("Location: actions/login.php");
+}
+
 $sql = "SELECT p.id_publicacion, p.contenido_texto, p.fecha_publicacion,
                u.username, u.foto_perfil
         FROM publicaciones p
@@ -22,11 +26,10 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
+    <?php include('includes/WIP_header.php') ?>
 
-<?php include('includes/WIP_header.php') ?>
-    
 
-    <?php include ('templates/post_card.php'); ?>
+    <?php include('templates/post_card.php'); ?>
 
 </body>
 
