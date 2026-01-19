@@ -64,7 +64,6 @@ $totalSeguidos = $result['total_seguidos'];
 </head>
 
 <body>
-    <?php echo htmlspecialchars($_SESSION['usuario']) ?><?php echo htmlspecialchars($_SESSION['usuario']); ?><?php echo htmlspecialchars($_SESSION['usuario']); ?>
     <!-- Modal -->
     <div id="postModal" class="modal">
         <div class="modal-content">
@@ -122,65 +121,69 @@ $totalSeguidos = $result['total_seguidos'];
         });
     </script>
 
-    <div class="contenido">
+    <main>
 
-        <div class="perfil">
-            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
-            <ul>
-                <li>
-                    <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
-                    <span><strong><?= $numPublicaciones ?></strong> publicaciones </span> <span><strong><?= $totalSeguidores ?></strong> seguidores </span> <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
-                </li>
-                <li>
-                    <p class="biografia"><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
-                </li>
-            </ul>
-        </div>
+        <?php include('includes/WIP_aside.php') ?>
 
-        <?php echo renderizarBotonPerfil($user['id_usuario'], $pdo); ?>
+        <div class="contenido">
 
-        <h2>Publicaciones</h2>
+            <div class="perfil">
+                <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
+                <ul>
+                    <li>
+                        <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
+                        <span><strong><?= $numPublicaciones ?></strong> publicaciones </span> <span><strong><?= $totalSeguidores ?></strong> seguidores </span> <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
+                    </li>
+                    <li>
+                        <p class="biografia"><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
+                    </li>
+                </ul>
+            </div>
 
-        <hr>
+            <?php echo renderizarBotonPerfil($user['id_usuario'], $pdo); ?>
 
-        <div class="publicaciones">
-            <?php foreach ($publicaciones as $post): ?>
-                <?php
-                // --- Numero de likes ---
-                $stmt = $pdo->prepare("SELECT COUNT(*) AS total_likes FROM likes WHERE id_publicacion = ?");
-                $stmt->execute([$post['id_publicacion']]);
-                $totalLikes = $stmt->fetchColumn();
+            <h2>Publicaciones</h2>
 
-                // --- Numero de comentarios ---
-                $stmt = $pdo->prepare("SELECT COUNT(*) AS total_comentarios FROM comentarios WHERE id_publicacion = ?");
-                $stmt->execute([$post['id_publicacion']]);
-                $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                $totalComentarios = $result['total_comentarios'];
-                ?>
+            <hr>
 
-                <!-- --- TODOS LOS POST DEL PERFIL --- -->
-                <div class="post-card">
-                    <div class="post-content">
-                        <?php if (!empty($post['media'])): ?>
-                            <img
-                                src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
-                                class="post-image"
-                                data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
-                                data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
-                                data-likes="<?= $totalLikes ?>"
-                                data-comments="<?= $totalComentarios; ?>">
-                        <?php endif; ?>
-                        <!-- --- Contenido del texto de las publicaciones de los posts --- -->
-                        <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
-                        <!-- --- Fecha del post --- -->
-                        <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
+            <div class="publicaciones">
+                <?php foreach ($publicaciones as $post): ?>
+                    <?php
+                    // --- Numero de likes ---
+                    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_likes FROM likes WHERE id_publicacion = ?");
+                    $stmt->execute([$post['id_publicacion']]);
+                    $totalLikes = $stmt->fetchColumn();
+
+                    // --- Numero de comentarios ---
+                    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_comentarios FROM comentarios WHERE id_publicacion = ?");
+                    $stmt->execute([$post['id_publicacion']]);
+                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                    $totalComentarios = $result['total_comentarios'];
+                    ?>
+
+                    <!-- --- TODOS LOS POST DEL PERFIL --- -->
+                    <div class="post-card">
+                        <div class="post-content">
+                            <?php if (!empty($post['media'])): ?>
+                                <img
+                                    src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
+                                    class="post-image"
+                                    data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
+                                    data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
+                                    data-likes="<?= $totalLikes ?>"
+                                    data-comments="<?= $totalComentarios; ?>">
+                            <?php endif; ?>
+                            <!-- --- Contenido del texto de las publicaciones de los posts --- -->
+                            <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
+                            <!-- --- Fecha del post --- -->
+                            <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
+                        </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            </div>
         </div>
-    </div>
 
-
+    </main>
     <!-- --- Modal que se superpone --- -->
     <div id="postModal" class="modal">
         <div class="modal-content">

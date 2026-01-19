@@ -7,6 +7,7 @@
     /* Azules (Primarios) */
     --blue-main: #1a4fad;
     --blue-light: #4a90e2;
+    --blue-light-transparencia: rgba(75, 145, 226, 0.563);
 
     /* Magentas (Acentos/Interacción) */
     --magenta-main: #d12c7d;

@@ -26,10 +26,18 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 
 <body>
-    <?php include('includes/WIP_header.php') ?>
 
+    <main>
+        <?php include('includes/WIP_aside.php') ?>
 
-    <?php include('templates/post_card.php'); ?>
+        <div class="posts">
+            <?php include('includes/WIP_header.php') ?>
+
+            <?php include('templates/post_card.php'); ?>
+
+        </div>
+    </main>
+
 
 </body>
 
