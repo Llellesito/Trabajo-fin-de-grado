@@ -1,5 +1,6 @@
 <?php
-require('includes/db.php');
+require_once('includes/db.php');
+require_once('clases/Post.php');
 
 // Obtener usuarios
 $stmt = $pdo->query("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios");
@@ -52,8 +53,20 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <div class="post-footer">
-            <div class="boton"><button class="like"> ❤️ </button><strong><?= $totalLikes ?></strong></div>
-            <div class="boton"><button class="comentar"> 💬 </button><strong><?= $totalComentarios ?></strong></div>
+            <div class="boton">
+                <form action="actions/like_action.php" method="POST" style="display:inline;">
+                    <input type="hidden" name="id_publicacion" value="<?= $id_post ?>">
+                    <button type="submit" class="like" style="background:none; border:none; cursor:pointer;">
+                        <?= $yaDioLike ? '❤️' : '🤍' ?>
+                    </button>
+                </form>
+                <strong><?= $totalLikes ?></strong>
+            </div>
+
+            <div class="boton">
+                <button class="comentar"> 💬 </button>
+                <strong><?= $totalComentarios ?></strong>
+            </div>
         </div>
     </div>
 <?php endforeach; ?>
