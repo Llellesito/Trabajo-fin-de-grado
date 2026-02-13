@@ -21,8 +21,8 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <title>8Mangos</title>
-    <link rel="stylesheet" href="/assets/css/style.css">
-    <link rel="shortcut icon" href="icono.png">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="shortcut icon" href="assets/images/8mangos.png">
 </head>
 
 <body>

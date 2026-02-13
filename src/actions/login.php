@@ -36,6 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <link rel="stylesheet" href="../assets/css/logeo.css">
+    <link rel="shortcut icon" href="../assets/images/8mangos.png">
     <title>Iniciar sesión - 8Mangos</title>
 </head>
 

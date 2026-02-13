@@ -61,7 +61,7 @@ if (isset($_SESSION['id_usuario'])) {
     <meta charset="UTF-8">
     <title>@<?= htmlspecialchars($user['nombre']) ?> - 8Mangos</title>
     <link rel="stylesheet" href="assets/css/perfil.css">
-    <link rel="shortcut icon" href="icono.png">
+    <link rel="shortcut icon" href="assets/images/8mangos.png">
 </head>
 
 <body>

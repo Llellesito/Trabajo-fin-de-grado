@@ -15,47 +15,35 @@ main {
 div.formulario {
     flex-grow: 1;
     padding: 20px;
+    display: flex;
+    justify-content: center;
 }
 
+/* Volvemos a tu caja con sombra magenta */
 div.contenido {
     background-color: var(--bg-card);
     padding: 30px;
-    margin: auto;
-    margin-bottom: 20px;
     width: 500px;
     border-radius: 10px;
     box-shadow: 3px 3px 3px 0px var(--magenta-main);
 }
 
-input[type="text"] {
-    border-radius: 10px;
-    padding: 10px;
-    margin: 10px 0;
-    border: none;
-}
-
-input[type="file"] {
-    color: transparent;
-    font-family: sans-serif;
-}
-
-input[type="file"]::file-selector-button {
-    color: transparent;
-    background-color: transparent;
-    border: none;
-}
-
+input[type="text"],
 textarea {
-    width: 95%;
+    background-color: #0a0a15;
+    /* Fondo oscuro para que no desentone */
+    color: white;
     border-radius: 10px;
     padding: 10px;
     margin: 10px 0;
-    border: none;
+    border: 1px solid #333;
+    width: 95%;
 }
 
 .boton {
     padding: 10px;
-    width: 46%;
+    width: 100%;
+    /* Ajustado para el div flex */
     border-radius: 10px;
     background: var(--blue-light);
     color: var(--texto-general);
@@ -66,89 +54,4 @@ textarea {
 
 .boton:hover {
     background-color: var(--blue-light-hover);
-    transition: 200ms;
-}
-
-.boton:active {
-    background-color: var(--blue-light-click);
-    transition: 200ms;
-}
-
-a {
-    text-decoration: none;
-    color: var(--magenta-glow);
-    transition: 200ms;
-}
-
-a:hover {
-    color: var(--magenta-glow-claro);
-}
-
-.error {
-    color: red;
-    text-align: center;
-}
-
-/* --- Barra de navegación lateral --- */
-aside.sidebar {
-    background-color: var(--bg-card);
-    border-right: 1px solid var(--shadow-posts);
-    width: 220px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 20px 15px;
-}
-
-/* Contenedor del Título */
-.sidebar-logo {
-    padding: 10px 15px 30px 15px;
-}
-
-.sidebar-logo h2 {
-    margin: 0;
-    font-size: 24px;
-    font-weight: bold;
-    color: white;
-    letter-spacing: 1px;
-    background: linear-gradient(to right, #fff, var(--magenta-main));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.sidebar-nav ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 12px 15px;
-    margin-bottom: 5px;
-    border-radius: 12px;
-    color: var(--texto-general);
-    text-decoration: none;
-    transition: all 0.2s ease-in-out;
-}
-
-.nav-link .icon {
-    font-size: 1.3rem;
-    margin-right: 15px;
-}
-
-.nav-link .text {
-    font-size: 16px;
-    font-weight: 500;
-}
-
-/* Efectos */
-.nav-link:hover {
-    background-color: var(--blue-light-transparencia);
-    /* Fondo verde muy sutil */
-    color: #fff;
-    transform: translateY(3px);
 }

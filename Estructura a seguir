@@ -13,6 +13,8 @@ proyecto/
 │   │
 │   ├─ includes/                # Archivos compartidos
 │   │   ├─ db.php               # Conexión PDO a MySQL
+│   │   ├─ lib.php
+│   │   ├─ aside.php
 │   │   ├─ header.php           # Cabecera HTML, menús, etc.
 │   │   └─ footer.php           # Pie de página
 │   │
@@ -28,6 +30,7 @@ proyecto/
 │   │   ├─ register_action.php
 │   │   ├─ post_action.php
 │   │   ├─ editar_perfil.php
+│   │   ├─ procesar_post.php
 │   │   └─ like_action.php
 │   │
 │   ├─ assets/                  # Recursos estáticos
