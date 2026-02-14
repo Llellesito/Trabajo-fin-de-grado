@@ -1,18 +1,28 @@
 <?php
-class Post {
+class Post
+{
     private $pdo;
 
-    public function __construct($pdo) {
+    public function __construct($pdo)
+    {
         $this->pdo = $pdo;
     }
 
-    public function haDadoLike($id_usuario, $id_publicacion) {
+    public function contarLikes($id_publicacion)
+    {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM likes WHERE id_publicacion = ?");
+        $stmt->execute([$id_publicacion]);
+        return $stmt->fetchColumn();
+    }
+    public function haDadoLike($id_usuario, $id_publicacion)
+    {
         $stmt = $this->pdo->prepare("SELECT 1 FROM likes WHERE id_usuario = ? AND id_publicacion = ?");
         $stmt->execute([$id_usuario, $id_publicacion]);
         return (bool)$stmt->fetch();
     }
 
-    public function toggleLike($id_usuario, $id_publicacion) {
+    public function toggleLike($id_usuario, $id_publicacion)
+    {
         if ($this->haDadoLike($id_usuario, $id_publicacion)) {
             // Eliminar like
             $stmt = $this->pdo->prepare("DELETE FROM likes WHERE id_usuario = ? AND id_publicacion = ?");

@@ -224,7 +224,7 @@
                 <span class="close-btn">&times;</span>
             </div>
 
-            <form action="actions/procesar_post.php" method="POST" enctype="multipart/form-data">
+            <form action="../actions/procesar_post.php" method="POST" enctype="multipart/form-data">
 
                 <label for="file-input" class="upload-placeholder" id="drop-area">
                     <input type="file" name="media" id="file-input" accept="image/*" hidden>

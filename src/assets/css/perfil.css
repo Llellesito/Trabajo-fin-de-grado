@@ -14,7 +14,6 @@ main {
     align-items: flex-start;
 }
 
-
 a {
     text-decoration: none;
     color: var(--texto-general);
@@ -97,70 +96,98 @@ hr {
     width: 100%;
 }
 
+/* Oscurecemos más el fondo para que resalte el modal */
 .modal {
     display: none;
     position: fixed;
-    top: 0;
+    z-index: 10000;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.85);
-    z-index: 9999;
+    background-color: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(5px);
+    /* Efecto cristal opaco */
     justify-content: center;
     align-items: center;
 }
 
 .modal-content {
     background-color: var(--bg-card);
-    box-shadow: 5px 4px 5px 0px var(--border-soft);
-    border-radius: 10px;
-    padding: 20px;
-    max-width: 600px;
-    width: 90%;
-    color: var(--texto-general);
-    text-align: left;
+    border: 1px solid #333;
+    border-radius: 15px;
+    width: 500px;
+    /* Tamaño más manejable */
+    max-width: 90%;
     position: relative;
-}
-
-.modal-img {
-    width: 100%;
-    max-height: 70vh;
-    object-fit: contain;
-    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
 }
 
 .close {
-    font-size: 20px;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    z-index: 10;
 }
 
-/* --- Botones like y comentarios --- */
-.modal-content .btn {
-    padding: 5px;
+/* Imagen ajustada */
+.modal-body {
+    width: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+}
+
+.modal-img {
+    max-width: 100%;
+    max-height: 500px;
+    display: block;
+    object-fit: contain;
+}
+
+/* Pie del modal */
+.modal-footer {
+    padding: 20px;
+    background: var(--bg-card);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.btn-action {
+    background: #1a1a2e;
+    color: white;
+    border: 1px solid #333;
+    padding: 8px 15px;
     border-radius: 8px;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
+    transition: 0.3s;
 }
 
-#modal-like {
-    font-size: 16px;
-    background: none;
-    color: var(--texto-general);
-    border: none;
+.btn-action:hover {
+    border-color: var(--magenta-main);
+    box-shadow: 0 0 10px var(--magenta-main);
+    transform: translateY(-2px);
 }
 
-#modal-like:hover {
-    box-shadow: 5px 5px 5px 1px var(--magenta-main);
-    transition: 100ms;
+.modal-desc p {
+    margin: 5px 0;
+    font-size: 15px;
+    color: #eee;
 }
 
-#modal-comentar {
-    font-size: 16px;
-    color: var(--texto-general);
-    border: none;
-    background: none;
-}
-
-#modal-comentar:hover {
-    box-shadow: 5px 5px 5px 1px var(--magenta-main);
-    transition: 100ms;
+.modal-date {
+    display: block;
+    margin-top: 10px;
+    color: #888;
+    font-size: 12px;
+    text-transform: uppercase;
 }

@@ -6,7 +6,7 @@ if (!isset($_SESSION['usuario'])) {
     header("Location: actions/login.php");
 }
 
-$sql = "SELECT p.id_publicacion, p.contenido_texto, p.fecha_publicacion,
+$sql = "SELECT p.id_publicacion, p.id_usuario, p.contenido_texto, p.fecha_publicacion, p.media,
                u.username, u.foto_perfil
         FROM publicaciones p
         JOIN usuarios u ON p.id_usuario = u.id_usuario
@@ -38,7 +38,7 @@ $posts = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </main>
 
-
+    <script src="assets/js/likes_index.js"></script>
 </body>
 
 </html>

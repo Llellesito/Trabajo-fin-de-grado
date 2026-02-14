@@ -2,43 +2,33 @@
 require_once('includes/db.php');
 require_once('clases/Post.php');
 
-// Obtener usuarios
-$stmt = $pdo->query("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios");
-$usuarios = [];
-while ($u = $stmt->fetch(PDO::FETCH_ASSOC)) {
-    $usuarios[$u['id_usuario']] = $u; // Guardamos por id_usuario para acceso rápido
-}
+$postModel = new Post($pdo);
+$id_usuario_sesion = $_SESSION['id_usuario'] ?? 0;
 
+// Consulta única: Traemos posts, autor y conteos (usamos alias autor_id para el enlace)
+$sql = "SELECT p.*, 
+               u.username, 
+               u.foto_perfil, 
+               u.id_usuario AS autor_id,
+               (SELECT COUNT(*) FROM likes WHERE id_publicacion = p.id_publicacion) as totalLikes,
+               (SELECT COUNT(*) FROM comentarios WHERE id_publicacion = p.id_publicacion) as totalComentarios
+        FROM publicaciones p
+        JOIN usuarios u ON p.id_usuario = u.id_usuario
+        ORDER BY p.fecha_publicacion DESC";
 
-// Obtener publicaciones
-$tablaPublicacion = $pdo->query("SELECT id_publicacion, id_usuario, media, contenido_texto, fecha_publicacion, privacidad FROM publicaciones");
-$publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
+$stmt = $pdo->query($sql);
+$publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-?>
-
-
-<?php foreach ($publicaciones as $post):
-    $user = $usuarios[$post['id_usuario']] ?? null;
-    if (!$user) continue;
-
-    // Numero de likes
-    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_likes FROM likes WHERE id_publicacion = ?");
-    $stmt->execute([$post['id_publicacion']]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalLikes = $result['total_likes'];
-
-    // Numero de comentarios
-    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_comentarios FROM comentarios WHERE id_publicacion = ?");
-    $stmt->execute([$post['id_publicacion']]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $totalComentarios = $result['total_comentarios'];
+foreach ($publicaciones as $post):
+    $id_post = $post['id_publicacion'];
+    $yaDioLike = ($id_usuario_sesion > 0) ? $postModel->haDadoLike($id_usuario_sesion, $id_post) : false;
 ?>
     <div class="post-card">
         <div class="post-header" style="display:flex; align-items:center;">
-            <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil"
+            <img src="data:image/jpeg;base64,<?= base64_encode($post['foto_perfil']) ?>" alt="Foto de perfil"
                 width="30" height="30" style="margin-right:10px; border-radius:50%;">
             <h3 class="username" style="margin:0;">
-                <a href="perfil.php?id=<?= $user['id_usuario'] ?>"> @<?= htmlspecialchars($user['username']); ?></a>
+                <a href="perfil.php?id=<?= $post['autor_id'] ?>"> @<?= htmlspecialchars($post['username']); ?></a>
             </h3>
             <div style="margin-left:auto; font-size:12px; color:#fff;">
                 <?= htmlspecialchars($post['fecha_publicacion']); ?>
@@ -54,18 +44,15 @@ $publicaciones = $tablaPublicacion->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="post-footer">
             <div class="boton">
-                <form action="actions/like_action.php" method="POST" style="display:inline;">
-                    <input type="hidden" name="id_publicacion" value="<?= $id_post ?>">
-                    <button type="submit" class="like" style="background:none; border:none; cursor:pointer;">
-                        <?= $yaDioLike ? '❤️' : '🤍' ?>
-                    </button>
-                </form>
-                <strong><?= $totalLikes ?></strong>
+                <button class="btn-like-ajax" data-id="<?= $id_post ?>" style="background:none; border:none; cursor:pointer;">
+                    <span class="icon" style="font-size: 16px;"><?= $yaDioLike ? '❤️' : '🤍' ?></span>
+                </button>
+                <strong class="count"><?= $post['totalLikes'] ?></strong>
             </div>
 
             <div class="boton">
                 <button class="comentar"> 💬 </button>
-                <strong><?= $totalComentarios ?></strong>
+                <strong><?= $post['totalComentarios'] ?></strong>
             </div>
         </div>
     </div>

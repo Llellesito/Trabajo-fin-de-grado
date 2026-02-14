@@ -3,23 +3,30 @@ session_start();
 require_once '../includes/db.php';
 require_once '../clases/Post.php';
 
-// 1. Validar que existan los datos y que NO estén vacíos
+header('Content-Type: application/json'); // Decimos que vamos a responder con JSON
+
 if (!isset($_SESSION['id_usuario']) || empty($_POST['id_publicacion'])) {
-    // Si falta el ID, redirigimos al index sin hacer nada
-    header("Location: ../index.php");
-    exit();
+    echo json_encode(['status' => 'error', 'message' => 'No logueado o sin ID']);
+    exit;
 }
 
 $postModel = new Post($pdo);
 $id_usuario = $_SESSION['id_usuario'];
-
-// 2. Forzar que sea un entero para mayor seguridad
 $id_publicacion = (int)$_POST['id_publicacion'];
 
-// 3. Solo ejecutar si el ID es válido (mayor a 0)
-if ($id_publicacion > 0) {
-    $postModel->toggleLike($id_usuario, $id_publicacion);
-}
+// Ejecutamos el toggle
+$postModel->toggleLike($id_usuario, $id_publicacion);
 
-header("Location: " . $_SERVER['HTTP_REFERER']);
-exit();
+// Obtenemos el nuevo conteo para actualizar la interfaz sin recargar
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM likes WHERE id_publicacion = ?");
+$stmt->execute([$id_publicacion]);
+$nuevoTotal = $stmt->fetchColumn();
+
+// Comprobamos si ahora tiene like o no
+$yaTieneLike = $postModel->haDadoLike($id_usuario, $id_publicacion);
+
+echo json_encode([
+    'status' => 'success',
+    'totalLikes' => $nuevoTotal,
+    'liked' => $yaTieneLike
+]);

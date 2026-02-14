@@ -2,57 +2,38 @@
 session_start();
 require 'includes/db.php';
 require 'includes/lib.php';
+require_once 'clases/Post.php'; // Asegúrate de incluir tu clase Post
 
-// Inicializar variables
-$user = null;
-$publicaciones = [];
-$numPublicaciones = 0;
-$totalSeguidores = 0;
-$totalSeguidos = 0;
-
-// Si hay sesión, cargamos datos del usuario
-if (isset($_SESSION['id_usuario'])) {
-    $id_usuario = $_SESSION['id_usuario'];
-
-    // Datos del usuario
-    $stmt = $pdo->prepare("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios WHERE id_usuario = ?");
-    $stmt->execute([$id_usuario]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($user) {
-        // Publicaciones
-        $stmt = $pdo->prepare("SELECT id_publicacion, media, contenido_texto, fecha_publicacion FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
-        $stmt->execute([$id_usuario]);
-        $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        // Contadores
-        $numPublicaciones = $pdo->prepare("SELECT COUNT(*) FROM publicaciones WHERE id_usuario = ?");
-        $numPublicaciones->execute([$id_usuario]);
-        $numPublicaciones = $numPublicaciones->fetchColumn();
-
-        $totalSeguidores = $pdo->prepare("SELECT COUNT(*) FROM seguidores WHERE id_seguido = ?");
-        $totalSeguidores->execute([$id_usuario]);
-        $totalSeguidores = $totalSeguidores->fetchColumn();
-
-        $totalSeguidos = $pdo->prepare("SELECT COUNT(*) FROM seguidores WHERE id_seguidor = ?");
-        $totalSeguidos->execute([$id_usuario]);
-        $totalSeguidos = $totalSeguidos->fetchColumn();
-    }
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: login.php");
+    exit();
 }
+
+$id_usuario_sesion = $_SESSION['id_usuario'];
+$id_usuario = $id_usuario_sesion; // Puedes cambiar esto si vas a ver perfiles ajenos
+
+// Datos del usuario
+$stmt = $pdo->prepare("SELECT id_usuario, username, nombre, bio, foto_perfil FROM usuarios WHERE id_usuario = ?");
+$stmt->execute([$id_usuario]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    echo "Usuario no encontrado";
+    exit;
+}
+
+$postModel = new Post($pdo);
+
+// Publicaciones
+$stmt = $pdo->prepare("SELECT id_publicacion, media, contenido_texto, fecha_publicacion FROM publicaciones WHERE id_usuario = ? ORDER BY fecha_publicacion DESC");
+$stmt->execute([$id_usuario]);
+$publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Contadores
+$numPublicaciones = count($publicaciones);
+$totalSeguidores = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguido = $id_usuario")->fetchColumn();
+$totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor = $id_usuario")->fetchColumn();
 ?>
-
-<!-- UNICAMENTE PARA PRUEBAS
-
-<?php if ($user): ?>
-    <h1><?= htmlspecialchars($user['nombre']) ?></h1>
-    <p>Publicaciones: <?= $numPublicaciones ?></p>
-    <?php foreach ($publicaciones as $post): ?>
-        <p><?= htmlspecialchars($post['contenido_texto']) ?></p>
-    <?php endforeach; ?>
-<?php else: ?>
-    <p>No hay usuario logueado.</p>
-<?php endif; ?>
--->
 
 <!DOCTYPE html>
 <html lang="es">
@@ -65,76 +46,40 @@ if (isset($_SESSION['id_usuario'])) {
 </head>
 
 <body>
-    <!-- Modal -->
+
     <div id="postModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <img id="modal-img" class="modal-img" alt="">
-            <div class="modal-info">
-                <br>
-                <button id="modal-likes" class="btn"></button>
-                <button id="modal-comments" class="btn"></button>
+            <div class="modal-body">
+                <img id="modal-img" class="modal-img" alt="Publicación">
+            </div>
+            <div class="modal-footer">
+                <div class="modal-actions">
+                    <input type="hidden" id="modal-post-id">
 
-                <br>
-                <span><strong>@<?= htmlspecialchars($user['username']) ?></strong></span>
-                <span id="modal-text"></span>
-                <p id="modal-text"></p>
-                <small id="modal-date"></small>
+                    <button id="modal-like-btn" class="btn-action">
+                        <span id="like-icon">🤍</span> <span id="like-count">0</span>
+                    </button>
+                    <button id="modal-comments" class="btn-action">💬 Comentar</button>
+                </div>
+                <div class="modal-desc">
+                    <p><strong>@<?= htmlspecialchars($user['username']) ?></strong> <span id="modal-text"></span></p>
+                    <small id="modal-date" class="modal-date"></small>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const modal = document.getElementById("postModal");
-            const modalImg = document.getElementById("modal-img");
-            const modalText = document.getElementById("modal-text");
-            const modalDate = document.getElementById("modal-date");
-            const closeBtn = document.querySelector(".close");
-
-            // Buscar todas las imágenes
-            const images = document.querySelectorAll(".post-image");
-            console.log("Encontradas:", images.length, "imágenes");
-
-            // Agregar eventos de clic
-            images.forEach(img => {
-                img.addEventListener("click", () => {
-                    modal.style.display = "flex";
-                    modalImg.src = img.src;
-                    modalText.textContent = img.getAttribute("data-text");
-                    modalDate.textContent = img.getAttribute("data-date");
-
-                    // Mostrar likes y comentarios
-                    document.getElementById("modal-likes").textContent = img.getAttribute("data-likes") + " ❤️ Like";
-                    document.getElementById("modal-comments").textContent = img.getAttribute("data-comments") + " 💬 Comentar";
-                });
-            });
-
-            // Cerrar con la X
-            closeBtn.addEventListener("click", () => modal.style.display = "none");
-
-            // Cerrar al hacer clic fuera
-            modal.addEventListener("click", e => {
-                if (e.target === modal) modal.style.display = "none";
-            });
-        });
-    </script>
-
     <main>
-
         <?php include('includes/WIP_aside.php') ?>
 
         <div class="contenido">
-
             <div class="perfil">
-                <img src="<?= (!empty($user['foto_perfil'])) ? 'data:image/jpeg;base64,' . base64_encode($user['foto_perfil'])  : 'assets/images/default.png'; ?>"
-                    alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
+                <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
                 <ul>
                     <li>
                         <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
-                        <span><strong><?= $numPublicaciones ?></strong> publicaciones </span>
-                        <span><strong><?= $totalSeguidores ?></strong> seguidores </span>
-                        <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
+                        <span><strong><?= $numPublicaciones ?></strong> publicaciones </span> <span><strong><?= $totalSeguidores ?></strong> seguidores </span> <span><strong><?= $totalSeguidos ?></strong> seguidos </span>
                     </li>
                     <li>
                         <p class="biografia"><?= nl2br(htmlspecialchars($user['bio'])) ?></p>
@@ -142,63 +87,43 @@ if (isset($_SESSION['id_usuario'])) {
                 </ul>
             </div>
 
-            <!-- FUNCION EXPERIMENTAL -->
-            <?php echo renderizarBotonPerfil($user['id_usuario'], $_SESSION['id_usuario']); ?>
-            <!-- FUNCION EXPERIMENTAL -->
+            <?php echo renderizarBotonPerfil($user['id_usuario'], $pdo); ?>
 
             <h2>Publicaciones</h2>
             <hr>
 
-
             <div class="publicaciones">
-                <?php foreach ($publicaciones as $post): ?>
-                    <?php
-                    // Numero de likes
-                    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_likes FROM likes WHERE id_publicacion = ?");
-                    $stmt->execute([$post['id_publicacion']]);
-                    $totalLikes = $stmt->fetchColumn();
+                <?php foreach ($publicaciones as $post):
+                    // Verificamos si el usuario logueado ya dio like a esta foto
+                    $yaTieneLike = $postModel->haDadoLike($id_usuario_sesion, $post['id_publicacion']);
 
-                    // Numero de comentarios
-                    $stmt = $pdo->prepare("SELECT COUNT(*) AS total_comentarios FROM comentarios WHERE id_publicacion = ?");
-                    $stmt->execute([$post['id_publicacion']]);
-                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $totalComentarios = $result['total_comentarios'];
-                    ?>
-
+                    // Contamos likes
+                    $stmtLikes = $pdo->prepare("SELECT COUNT(*) FROM likes WHERE id_publicacion = ?");
+                    $stmtLikes->execute([$post['id_publicacion']]);
+                    $likesCount = $stmtLikes->fetchColumn();
+                ?>
                     <div class="post-card">
                         <div class="post-content">
+
                             <?php if (!empty($post['media'])): ?>
-                                <img
-                                    src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
+                                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
                                     class="post-image"
+                                    data-id="<?= $post['id_publicacion'] ?>"
                                     data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
                                     data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
-                                    data-likes="<?= $totalLikes ?>"
-                                    data-comments="<?= $totalComentarios ?>">
+                                    data-likes="<?= $likesCount ?>"
+                                    data-user-liked="<?= $yaTieneLike ? '1' : '0' ?>">
                             <?php endif; ?>
+                            <!-- --- Contenido del texto de las publicaciones de los posts --- -->
                             <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
-                            <p><?= htmlspecialchars($post['fecha_publicacion']); ?></p>
                         </div>
                     </div>
                 <?php endforeach; ?>
             </div>
         </div>
-
     </main>
 
-    <!-- Modal que se superpone -->
-    <div id="postModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <img id="modal-img" class="modal-img" alt="">
-            <div class="modal-info">
-                <p id="modal-text"></p>
-                <small id="modal-date"></small>
-            </div>
-        </div>
-    </div>
-
-
+    <script src="assets/js/perfil_modal.js"></script>
 </body>
 
 </html>
