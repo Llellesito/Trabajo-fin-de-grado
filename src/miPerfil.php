@@ -47,24 +47,34 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
 
 <body>
 
+    <!-- Modal -->
     <div id="postModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <div class="modal-body">
-                <img id="modal-img" class="modal-img" alt="Publicación">
-            </div>
-            <div class="modal-footer">
-                <div class="modal-actions">
-                    <input type="hidden" id="modal-post-id">
 
-                    <button id="modal-like-btn" class="btn-action">
-                        <span id="like-icon">🤍</span> <span id="like-count">0</span>
-                    </button>
-                    <button id="modal-comments" class="btn-action">💬 Comentar</button>
+            <div class="modal-body">
+                <img id="modal-img" class="modal-img" alt="Publicación" style="width:100%; display:block;">
+            </div>
+
+            <div class="modal-footer" style="padding: 15px;">
+                <div class="post-footer" style="display:flex; gap: 20px; align-items: center; margin-bottom: 15px;">
+                    <div class="boton">
+                        <button id="modal-like-btn" class="btn-like-ajax btn-action" data-id="" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">
+                            <span class="icon" id="like-icon">🤍</span>
+                        </button>
+                        <strong id="like-count" class="count">0</strong>
+                    </div>
+
+                    <div class="boton">
+                        <button class="comentar" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">
+                            💬 <strong>0</strong>
+                        </button>
+                    </div>
                 </div>
+
                 <div class="modal-desc">
-                    <p><strong>@<?= htmlspecialchars($user['username']) ?></strong> <span id="modal-text"></span></p>
-                    <small id="modal-date" class="modal-date"></small>
+                    <p style="margin:0;"><strong>@<?= htmlspecialchars($user['username']) ?></strong> <span id="modal-text"></span></p>
+                    <small id="modal-date" class="modal-date" style="color: #888; font-size: 12px;"></small>
                 </div>
             </div>
         </div>
