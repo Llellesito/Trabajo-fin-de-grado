@@ -72,7 +72,7 @@
     .modal-overlay {
         display: none;
         position: fixed;
-        z-index: 9999;
+        /*z-index: 9999;*/
         left: 0;
         top: 0;
         width: 100%;
@@ -229,7 +229,7 @@
                 <label for="file-input" class="upload-placeholder" id="drop-area">
                     <input type="file" name="media" id="file-input" accept="image/*" hidden>
 
-                    <div id="preview-content">
+                    <div id="preview-content" style="display: flex">
                         <span class="icon">📷</span>
                         <p id="upload-text">Haz clic para agregar una foto</p>
                     </div>
@@ -243,5 +243,5 @@
         </div>
     </div>
 
+    <script src="../assets/js/subirPublicacion.js"></script>
 </aside>
-<script src="../assets/js/subirPublicacion.js"></script>
