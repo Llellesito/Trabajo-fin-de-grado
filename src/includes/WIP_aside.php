@@ -84,7 +84,7 @@
     .modal-content {
         background: #151525;
         /* Color oscuro similar a tu sidebar */
-        margin: 10% auto;
+        margin: 5% auto;
         padding: 25px;
         width: 40vw;
         max-width: 500px;
@@ -146,6 +146,7 @@
         align-items: center;
         justify-content: center;
         width: 100%;
+        height: 400px;
         min-height: 200px;
         background: #0a0a15;
         /* Fondo oscuro */
@@ -174,7 +175,7 @@
 
     #img-preview {
         width: 100%;
-        height: 100%;
+        height: 400px;
         object-fit: cover;
         /* Ajusta la imagen al cuadro */
     }
