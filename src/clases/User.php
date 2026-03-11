@@ -43,11 +43,16 @@ class User
     }
 
 
-    public function updateProfile($id_usuario, $username, $nombre, $bio, $foto_blob = null)
+    public function updateProfile($id_usuario, $username, $nombre, $bio, $foto_blob = null, $borrar_foto = false)
     {
         try {
-            if ($foto_blob !== null) {
-                // Actualización con foto
+            if ($borrar_foto) {
+                // Poner foto_perfil a NULL
+                $sql = "UPDATE usuarios SET username = ?, nombre = ?, bio = ?, foto_perfil = NULL WHERE id_usuario = ?";
+                $stmt = $this->pdo->prepare($sql);
+                return $stmt->execute([$username, $nombre, $bio, $id_usuario]);
+            } elseif ($foto_blob !== null) {
+                // Actualización con foto nueva
                 $sql = "UPDATE usuarios SET username = ?, nombre = ?, bio = ?, foto_perfil = ? WHERE id_usuario = ?";
                 $stmt = $this->pdo->prepare($sql);
                 return $stmt->execute([$username, $nombre, $bio, $foto_blob, $id_usuario]);
@@ -58,7 +63,6 @@ class User
                 return $stmt->execute([$username, $nombre, $bio, $id_usuario]);
             }
         } catch (PDOException $e) {
-            // Esto nos ayudará a saber si hubo un error de base de datos
             error_log("Error en updateProfile: " . $e->getMessage());
             return false;
         }

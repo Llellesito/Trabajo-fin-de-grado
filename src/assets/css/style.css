@@ -108,18 +108,38 @@ a {
 
 /* Footer del post */
 .post-footer {
-    margin-top: 10px;
+    margin-top: 12px;
     display: flex;
-    gap: 10px;
+    gap: 6px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 10px;
 }
 
 /* --- Botones de los Posts --- */
 
 .boton {
-    padding: 5px;
-    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: transparent;
+    border: 1px solid transparent;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 14px;
+    color: var(--text-low);
+    transition: background 150ms, color 150ms, border-color 150ms;
+}
+
+.boton:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-soft);
+    color: var(--texto-general);
+}
+
+.boton strong {
+    font-weight: 500;
+    font-size: 13px;
 }
 
 .like {
@@ -129,19 +149,18 @@ a {
 }
 
 .like:hover {
-    box-shadow: 5px 5px 5px 1px var(--magenta-main);
-    transition: 100ms;
+    color: var(--magenta-main);
 }
 
 .comentar {
     font-size: 16px;
     border: none;
     background: none;
+    color: var(--text-low);
 }
 
 .comentar:hover {
-    box-shadow: 5px 5px 5px 1px var(--magenta-main);
-    transition: 100ms;
+    color: var(--blue-light);
 }
 
 /* --- Cabecera del post --- */
@@ -276,7 +295,7 @@ a {
 .comment-date {
     font-size: 11px;
     color: var(--text-low);
-    margin-top: 3px;
+    margin-left: auto;
 }
 
 .btn-delete-comment {
@@ -292,6 +311,67 @@ a {
 
 .btn-delete-comment:hover {
     opacity: 0.7;
+}
+
+/* --- Menú de opciones del comentario (⋮) --- */
+.comment-options-container {
+    position: relative;
+    align-self: center;
+    flex-shrink: 0;
+}
+
+.btn-comment-options {
+    background: none;
+    border: none;
+    color: var(--text-low);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    line-height: 1;
+    transition: color 100ms;
+}
+
+.btn-comment-options:hover {
+    color: var(--texto-general);
+}
+
+.comment-options-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 24px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    z-index: 50;
+    min-width: 130px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+}
+
+.comment-options-menu.show {
+    display: block;
+}
+
+.comment-options-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--texto-general);
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 100ms;
+}
+
+.comment-options-menu button:hover {
+    background-color: var(--border-soft);
+}
+
+.comment-options-menu .btn-delete-comment {
+    color: #ff4d4d;
 }
 
 .comments-empty {
@@ -341,4 +421,92 @@ a {
     border: none;
     cursor: pointer;
     font-size: 16px;
+    padding: 0;
+    color: var(--text-low);
+    display: flex;
+    align-items: center;
+    transition: transform 150ms;
+}
+
+.btn-like-ajax:hover {
+    transform: scale(1.2);
+}
+
+.btn-toggle-comments {
+    color: var(--text-low);
+    transition: transform 150ms;
+}
+
+.btn-toggle-comments:hover {
+    transform: scale(1.2);
+}
+
+/* --- Acciones de comentario (like + responder + fecha) --- */
+.comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.btn-like-comment {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-low);
+    font-size: 12px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    transition: color 100ms;
+}
+
+.btn-like-comment:hover,
+.btn-like-comment.liked {
+    color: var(--magenta-glow);
+}
+
+.btn-reply-comment {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-low);
+    font-size: 12px;
+    padding: 0;
+    transition: color 100ms;
+}
+
+.btn-reply-comment:hover {
+    color: var(--blue-light);
+}
+
+/* --- Respuestas anidadas --- */
+.replies-list {
+    margin-left: 36px;
+    border-left: 2px solid var(--border-soft);
+    padding-left: 10px;
+    margin-top: 4px;
+}
+
+.comment-reply .comment-avatar {
+    width: 22px;
+    height: 22px;
+}
+
+.comment-reply .comment-body {
+    font-size: 13px;
+}
+
+/* --- Caja de respuesta inline --- */
+.reply-box {
+    display: flex;
+    gap: 8px;
+    margin: 6px 0 6px 36px;
+}
+
+.reply-input {
+    font-size: 13px;
+    padding: 6px 12px;
 }

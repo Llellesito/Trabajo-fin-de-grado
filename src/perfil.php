@@ -53,32 +53,39 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
 <body>
     <!-- Modal -->
     <div id="postModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-
-            <div class="modal-body">
-                <img id="modal-img" class="modal-img" alt="Publicación" style="width:100%; display:block;">
-            </div>
-
-            <div class="modal-footer" style="padding: 15px;">
-                <div class="post-footer" style="display:flex; gap: 20px; align-items: center; margin-bottom: 15px;">
-                    <div class="boton">
-                        <button id="modal-like-btn" class="btn-like-ajax btn-action" data-id="" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">
-                            <span class="icon" id="like-icon">🤍</span>
-                        </button>
-                        <strong id="like-count" class="count">0</strong>
-                    </div>
-
-                    <div class="boton">
-                        <button class="comentar" style="background:none; border:none; cursor:pointer; font-size:1.2rem;">
-                            💬 <strong>0</strong>
-                        </button>
-                    </div>
+        <div class="modal-content post-card">
+            <div class="post-header">
+                <img id="modal-avatar" src="" class="post-avatar" alt="avatar">
+                <h3 class="username">
+                    <a id="modal-username-link" href="#">@<span id="modal-username"></span></a>
+                </h3>
+                <div class="post-header-right">
+                    <span id="modal-date" class="post-date"></span>
+                    <button class="modal-close btn-options">✕</button>
                 </div>
-
-                <div class="modal-desc">
-                    <p style="margin:0;"><strong>@<?= htmlspecialchars($user['username']) ?></strong> <span id="modal-text"></span></p>
-                    <small id="modal-date" class="modal-date" style="color: #888; font-size: 12px;"></small>
+            </div>
+            <div class="post-content">
+                <img id="modal-img" class="post-media" alt="Publicación" style="display:none;">
+                <p id="modal-text" class="modal-text-content"></p>
+            </div>
+            <div class="post-footer">
+                <div class="boton">
+                    <button id="modal-like-btn" class="btn-like-ajax" data-id="">
+                        <span class="icon">🤍</span>
+                    </button>
+                    <strong class="count">0</strong>
+                </div>
+                <div class="boton">
+                    <button class="btn-toggle-comments comentar" id="modal-comment-btn" data-id="">💬</button>
+                    <strong class="comment-count-modal">0</strong>
+                </div>
+            </div>
+            <div class="comments-section" id="modal-comments-section">
+                <div class="comments-list" id="modal-comments-list"></div>
+                <div class="comment-form">
+                    <input type="text" id="modal-comment-input" class="comment-input"
+                        placeholder="Escribe un comentario..." maxlength="500">
+                    <button class="btn-send-comment" id="modal-send-comment">Enviar</button>
                 </div>
             </div>
         </div>
@@ -91,7 +98,7 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
         <div class="contenido">
 
             <div class="perfil">
-                <img src="data:image/jpeg;base64,<?= base64_encode($user['foto_perfil']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
+                <img src="<?= avatarSrc($user['foto_perfil'], $user['username']) ?>" alt="Foto de perfil" width="150" height="150" style="border-radius:50%;">
                 <ul>
                     <li>
                         <h1><?= htmlspecialchars($user['nombre']) ?> (@<?= htmlspecialchars($user['username']) ?>)</h1>
@@ -118,6 +125,10 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
                     $stmtLikes = $pdo->prepare("SELECT COUNT(*) FROM likes WHERE id_publicacion = ?");
                     $stmtLikes->execute([$post['id_publicacion']]);
                     $likesCount = $stmtLikes->fetchColumn();
+
+                    $stmtComments = $pdo->prepare("SELECT COUNT(*) FROM comentarios WHERE id_publicacion = ? AND (id_padre IS NULL OR id_padre = 0)");
+                    $stmtComments->execute([$post['id_publicacion']]);
+                    $commentsCount = $stmtComments->fetchColumn();
                 ?>
                     <div class="post-card">
                         <div class="post-content">
@@ -129,6 +140,7 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
                                     data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
                                     data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
                                     data-likes="<?= $likesCount ?>"
+                                    data-comments="<?= $commentsCount ?>"
                                     data-user-liked="<?= $yaTieneLike ? '1' : '0' ?>">
                             <?php endif; ?>
                             <!-- --- Contenido del texto de las publicaciones de los posts --- -->
@@ -140,6 +152,12 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
 
     </main>
 
+    <script>
+        window.SESSION_USER_ID = <?= $id_usuario_sesion ?>;
+        window.PROFILE_AVATAR = <?= json_encode(avatarSrc($user['foto_perfil'], $user['username'])) ?>;
+        window.PROFILE_USERNAME = <?= json_encode($user['username']) ?>;
+        window.PROFILE_USER_ID = <?= $user['id_usuario'] ?>;
+    </script>
     <script src="assets/js/perfil_modal.js"></script>
 </body>
 

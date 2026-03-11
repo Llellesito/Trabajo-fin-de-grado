@@ -1,5 +1,18 @@
 <?php
 
+/**
+ * Devuelve el src de la foto de perfil.
+ * Si el usuario no tiene foto, genera un avatar con sus iniciales vía ui-avatars.
+ */
+function avatarSrc($foto_perfil, $username = 'U')
+{
+    if (!empty($foto_perfil)) {
+        return 'data:image/jpeg;base64,' . base64_encode($foto_perfil);
+    }
+    return 'https://ui-avatars.com/api/?name=' . urlencode($username)
+        . '&background=1a4fad&color=ffffff&bold=true&size=128';
+}
+
 function renderizarBotonPerfil($id_perfil_visitado, $pdo)
 {
     $mi_id = $_SESSION['id_usuario'] ?? null;

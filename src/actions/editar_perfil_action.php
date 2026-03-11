@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre = trim($_POST['nombre']);
     $bio = trim($_POST['bio']);
     $foto_blob = null;
+    $borrar_foto = isset($_POST['borrar_foto']) && $_POST['borrar_foto'] === '1';
 
     $userObj = new User($pdo);
 
@@ -25,12 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // 3. Procesar foto
-    if (isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
+    if (!$borrar_foto && isset($_FILES['foto']) && $_FILES['foto']['error'] === UPLOAD_ERR_OK) {
         $foto_blob = file_get_contents($_FILES['foto']['tmp_name']);
     }
 
     // 4. Ejecutar cambios
-    $exito = $userObj->updateProfile($id_usuario, $nuevo_username, $nombre, $bio, $foto_blob);
+    $exito = $userObj->updateProfile($id_usuario, $nuevo_username, $nombre, $bio, $foto_blob, $borrar_foto);
 
     if ($exito) {
         // ACTUALIZAR SESIÓN: Muy importante para que el header no falle
