@@ -72,7 +72,7 @@
     .modal-overlay {
         display: none;
         position: fixed;
-        /*z-index: 9999;*/
+        z-index: 9999;
         left: 0;
         top: 0;
         width: 100%;
@@ -218,31 +218,32 @@
         </ul>
     </nav>
 
-    <div id="modalPublicar" class="modal-overlay">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Nueva Publicación</h3>
-                <span class="close-btn">&times;</span>
-            </div>
-
-            <form action="../actions/procesar_post.php" method="POST" enctype="multipart/form-data">
-
-                <label for="file-input" class="upload-placeholder" id="drop-area">
-                    <input type="file" name="media" id="file-input" accept="image/*" hidden>
-
-                    <div id="preview-content" style="display: flex">
-                        <span class="icon">📷</span>
-                        <p id="upload-text">Haz clic para agregar una foto</p>
-                    </div>
-
-                    <img id="img-preview" src="" style="display: none;">
-                </label>
-                <textarea name="contenido_texto" placeholder="¿Qué estás pensando?"></textarea>
-
-                <button type="submit" class="btn-principal">Publicar en 8Mangos</button>
-            </form>
-        </div>
-    </div>
-
     <script src="../assets/js/subirPublicacion.js"></script>
 </aside>
+
+<!-- Modal fuera del aside para evitar problemas de stacking context -->
+<div id="modalPublicar" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Nueva Publicación</h3>
+            <span class="close-btn">&times;</span>
+        </div>
+
+        <form action="actions/procesar_post.php" method="POST" enctype="multipart/form-data">
+
+            <label for="file-input" class="upload-placeholder" id="drop-area">
+                <input type="file" name="media" id="file-input" accept="image/*" hidden>
+
+                <div id="preview-content" style="display: flex">
+                    <span class="icon">📷</span>
+                    <p id="upload-text">Haz clic para agregar una foto</p>
+                </div>
+
+                <img id="img-preview" src="" style="display: none;">
+            </label>
+            <textarea name="contenido_texto" placeholder="¿Qué estás pensando?"></textarea>
+
+            <button type="submit" class="btn-principal">Publicar en 8Mangos</button>
+        </form>
+    </div>
+</div>

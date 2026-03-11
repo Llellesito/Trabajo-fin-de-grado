@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     btnCerrar.onclick = () => modalPublicacion.style.display = "none";
-    window.onclick = (f) => { if (f.target === modalPublicacion) modalPublicacion.style.display = "none"; };
+    window.addEventListener("click", (f) => { if (f.target === modalPublicacion) modalPublicacion.style.display = "none"; });
 
 
     // Lógica de la previsualización de imagen que querías

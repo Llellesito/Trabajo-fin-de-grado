@@ -1,52 +1,3 @@
-<style>
-    .post-options-container {
-        position: relative;
-    }
-
-    .btn-options {
-        background: none;
-        border: none;
-        color: white;
-        font-size: 20px;
-        cursor: pointer;
-        padding: 0 5px;
-    }
-
-    .options-menu {
-        display: none;
-        /* Oculto por defecto */
-        position: absolute;
-        right: 0;
-        top: 25px;
-        background-color: #333;
-        border: 1px solid #444;
-        border-radius: 5px;
-        z-index: 100;
-        min-width: 120px;
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
-    }
-
-    .options-menu a {
-        display: block;
-        color: white;
-        padding: 10px;
-        text-decoration: none;
-        font-size: 14px;
-    }
-
-    .options-menu a:hover {
-        background-color: #444;
-    }
-
-    .options-menu a.delete-link {
-        color: #ff4d4d;
-    }
-
-    .show {
-        display: block !important;
-    }
-</style>
-
 <?php
 require_once('includes/db.php');
 require_once('clases/Post.php');
@@ -72,16 +23,16 @@ foreach ($publicaciones as $post):
     $yaDioLike = ($id_usuario_sesion > 0) ? $postModel->haDadoLike($id_usuario_sesion, $id_post) : false;
 ?>
     <div class="post-card">
-        <div class="post-header" style="display:flex; align-items:center; position: relative;">
+        <div class="post-header">
             <img src="data:image/jpeg;base64,<?= base64_encode($post['foto_perfil']) ?>" alt="Foto de perfil"
-                width="30" height="30" style="margin-right:10px; border-radius:50%;">
+                class="post-avatar">
 
-            <h3 class="username" style="margin:0;">
+            <h3 class="username">
                 <a href="perfil.php?id=<?= $post['autor_id'] ?>"> @<?= htmlspecialchars($post['username']); ?></a>
             </h3>
 
-            <div style="margin-left:auto; display:flex; align-items:center; gap:10px;">
-                <span style="font-size:12px; color:#aaa;"><?= htmlspecialchars($post['fecha_publicacion']); ?></span>
+            <div class="post-header-right">
+                <span class="post-date"><?= htmlspecialchars($post['fecha_publicacion']); ?></span>
 
                 <?php if ($id_usuario_sesion == $post['autor_id']): ?>
                     <div class="post-options-container">
@@ -95,53 +46,172 @@ foreach ($publicaciones as $post):
             </div>
         </div>
 
-        <div class="post-content" style="margin-top:10px;">
+        <div class="post-content">
             <?php if (!empty($post['media'])): ?>
-                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>" alt="imagen del post" width="400" height="400" style="margin:auto; display:block;">
+                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>" alt="imagen del post" class="post-media">
             <?php endif; ?>
             <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
         </div>
 
         <div class="post-footer">
             <div class="boton">
-                <button class="btn-like-ajax" data-id="<?= $id_post ?>" style="background:none; border:none; cursor:pointer;">
-                    <span class="icon" style="font-size: 16px;"><?= $yaDioLike ? '❤️' : '🤍' ?></span>
+                <button class="btn-like-ajax" data-id="<?= $id_post ?>">
+                    <span class="icon"><?= $yaDioLike ? '❤️' : '🤍' ?></span>
                 </button>
                 <strong class="count"><?= $post['totalLikes'] ?></strong>
             </div>
             <div class="boton">
-                <button class="comentar"> 💬 </button>
-                <strong><?= $post['totalComentarios'] ?></strong>
+                <button class="btn-toggle-comments comentar" data-id="<?= $id_post ?>"> 💬 </button>
+                <strong class="comment-count-<?= $id_post ?>"><?= $post['totalComentarios'] ?></strong>
+            </div>
+        </div>
+
+        <!-- Sección de comentarios -->
+        <div class="comments-section" id="comments-<?= $id_post ?>">
+            <div class="comments-list" id="comments-list-<?= $id_post ?>"></div>
+            <div class="comment-form">
+                <input type="text"
+                    id="comment-input-<?= $id_post ?>"
+                    class="comment-input"
+                    placeholder="Escribe un comentario..."
+                    maxlength="500">
+                <button class="btn-send-comment" data-id="<?= $id_post ?>">Enviar</button>
             </div>
         </div>
     </div>
 <?php endforeach; ?>
 
 <script>
-    function toggleMenu(postId) {
-        // Evitar que el clic en el botón se propague al window
-        event.stopPropagation();
+    const SESSION_USER_ID = <?= $id_usuario_sesion ?>;
 
-        const menu = document.getElementById('menu-' + postId);
+    document.querySelectorAll('.btn-toggle-comments').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.id;
+            const section = document.getElementById('comments-' + postId);
+            const isHidden = !section.classList.contains('open');
+            section.classList.toggle('open', isHidden);
+            if (isHidden) cargarComentarios(postId);
+        });
+    });
 
-        // Cerrar todos los demás menús antes de abrir este
-        document.querySelectorAll('.options-menu').forEach(m => {
-            if (m.id !== 'menu-' + postId) {
-                m.classList.remove('show');
+    document.querySelectorAll('.btn-send-comment').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const postId = this.dataset.id;
+            const input = document.getElementById('comment-input-' + postId);
+            const contenido = input.value.trim();
+            if (!contenido) return;
+
+            const formData = new FormData();
+            formData.append('accion', 'agregar');
+            formData.append('id_publicacion', postId);
+            formData.append('contenido', contenido);
+
+            fetch('actions/comment_action.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        input.value = '';
+                        renderComentarios(postId, data.comentarios);
+                        document.querySelector('.comment-count-' + postId).textContent = data.totalComentarios;
+                    }
+                });
+        });
+    });
+
+    document.querySelectorAll('[id^="comment-input-"]').forEach(input => {
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                const postId = this.id.replace('comment-input-', '');
+                document.querySelector('.btn-send-comment[data-id="' + postId + '"]').click();
             }
         });
+    });
 
-        // Alternar el menú actual
+    function cargarComentarios(postId) {
+        fetch('actions/comment_action.php?accion=obtener&id_publicacion=' + postId)
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'success') renderComentarios(postId, data.comentarios);
+            });
+    }
+
+    function renderComentarios(postId, comentarios) {
+        const lista = document.getElementById('comments-list-' + postId);
+        lista.innerHTML = '';
+
+        if (comentarios.length === 0) {
+            lista.innerHTML = '<p class="comments-empty">Sé el primero en comentar 💬</p>';
+            return;
+        }
+
+        comentarios.forEach(c => {
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+
+            const avatarSrc = c.foto_perfil ?
+                'data:image/jpeg;base64,' + c.foto_perfil :
+                'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.username) + '&background=555&color=fff';
+
+            const deleteBtn = (parseInt(c.id_usuario) === SESSION_USER_ID) ?
+                `<button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${postId}" title="Borrar">🗑️</button>` :
+                '';
+
+            div.innerHTML = `
+            <img src="${avatarSrc}" class="comment-avatar" alt="${c.username}">
+            <div class="comment-body">
+                <div class="comment-username">@${c.username}</div>
+                <div class="comment-text">${escapeHtml(c.contenido)}</div>
+                <div class="comment-date">${c.fecha_comentario}</div>
+            </div>
+            ${deleteBtn}
+        `;
+            lista.appendChild(div);
+        });
+
+        lista.querySelectorAll('.btn-delete-comment').forEach(btn => {
+            btn.addEventListener('click', function() {
+                if (!confirm('¿Borrar este comentario?')) return;
+                const formData = new FormData();
+                formData.append('accion', 'borrar');
+                formData.append('id_comentario', this.dataset.comentario);
+                formData.append('id_publicacion', this.dataset.publicacion);
+
+                fetch('actions/comment_action.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            cargarComentarios(postId);
+                            document.querySelector('.comment-count-' + postId).textContent = data.totalComentarios;
+                        }
+                    });
+            });
+        });
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    function toggleMenu(postId) {
+        event.stopPropagation();
+        const menu = document.getElementById('menu-' + postId);
+        document.querySelectorAll('.options-menu').forEach(m => {
+            if (m.id !== 'menu-' + postId) m.classList.remove('show');
+        });
         menu.classList.toggle('show');
     }
 
-    // Cerrar el menú si se hace clic fuera de él
-    window.onclick = function(event) {
-        // Si el clic NO ocurrió dentro de un botón de opciones ni dentro del menú mismo
+    window.addEventListener("click", function(event) {
         if (!event.target.closest('.btn-options') && !event.target.closest('.options-menu')) {
-            document.querySelectorAll('.options-menu').forEach(menu => {
-                menu.classList.remove('show');
-            });
+            document.querySelectorAll('.options-menu').forEach(menu => menu.classList.remove('show'));
         }
-    }
+    })
 </script>

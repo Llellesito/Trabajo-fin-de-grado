@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2. CERRAR MODAL
     closeBtn.onclick = () => modal.style.display = "none";
-    window.onclick = (e) => { if (e.target === modal) modal.style.display = "none"; };
+    window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
 
 
     // 3. LOGICA DE LIKE POR AJAX (DELEGACIÓN DE EVENTOS)
