@@ -111,7 +111,7 @@ hr {
     width: 460px !important;
     max-width: 95vw;
     max-height: 90vh;
-    overflow-y: auto;
+    overflow: hidden;
     scrollbar-width: thin;
     margin: 0 !important;
     background-color: var(--bg-card);
@@ -284,16 +284,25 @@ hr {
     margin-top: 10px;
     border-top: 1px solid var(--border-soft);
     padding-top: 10px;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .modal .comments-section.open {
-    display: block;
+    display: flex;
 }
 
 .modal .comments-list {
-    margin-bottom: 10px;
-    max-height: 300px;
+    flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-soft) transparent;
+    margin-bottom: 0;
+    padding-right: 4px;
 }
 
 .modal .comment-item {
@@ -359,6 +368,7 @@ hr {
     display: flex;
     gap: 8px;
     margin-top: 8px;
+    flex-shrink: 0;
 }
 
 .modal .comment-input {
@@ -400,5 +410,132 @@ hr {
 
 .modal .post-date {
     font-size: 12px;
+    color: var(--text-low);
+}
+
+/* Acciones de comentario (like, responder, fecha) */
+.modal .btn-like-comment {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-low);
+    font-size: 12px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    transition: color 100ms;
+}
+
+.modal .btn-like-comment:hover,
+.modal .btn-like-comment.liked {
+    color: var(--magenta-glow);
+}
+
+.modal .btn-reply-comment {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-low);
+    font-size: 12px;
+    padding: 0;
+    transition: color 100ms;
+}
+
+.modal .btn-reply-comment:hover {
+    color: var(--blue-light);
+}
+
+/* Respuestas anidadas */
+.modal .replies-list {
+    margin-left: 36px;
+    border-left: 2px solid var(--border-soft);
+    padding-left: 10px;
+    margin-top: 4px;
+}
+
+.modal .comment-reply .comment-avatar {
+    width: 24px;
+    height: 24px;
+}
+
+.modal .comment-reply .comment-body {
+    font-size: 12px;
+}
+
+/* Caja de respuesta inline */
+.modal .reply-box {
+    display: flex;
+    gap: 8px;
+    margin: 6px 0 6px 36px;
+}
+
+.modal .reply-input {
+    font-size: 12px;
+    padding: 6px 12px;
+}
+
+/* Menú de opciones del comentario (⋮) */
+.modal .comment-options-container {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.modal .btn-comment-options {
+    background: none;
+    border: none;
+    color: var(--text-low);
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 100ms;
+    flex-shrink: 0;
+    z-index: 101;
+    position: relative;
+}
+
+.modal .btn-comment-options:hover {
+    color: var(--texto-general);
+}
+
+.modal .comment-options-menu {
+    display: none;
+    position: fixed;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    z-index: 10001;
+    min-width: 140px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+    overflow: hidden;
+}
+
+.modal .comment-options-menu.show {
+    display: block;
+}
+
+.modal .comment-options-menu button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--texto-general);
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 100ms;
+}
+
+.modal .comment-options-menu button:hover {
+    background-color: var(--border-soft);
+}
+
+.modal .comment-options-menu .btn-delete-comment {
+    color: #ff4d4d;
+}
+
+.modal .comment-options-menu .btn-cancel-comment-menu {
     color: var(--text-low);
 }

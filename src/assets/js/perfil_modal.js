@@ -241,6 +241,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (m !== optionsMenu) m.classList.remove("show");
                 });
                 optionsMenu.classList.toggle("show");
+
+                // Posicionar el menú en fixed
+                if (optionsMenu.classList.contains("show")) {
+                    const rect = optionsBtn.getBoundingClientRect();
+                    optionsMenu.style.top = (rect.top) + "px";
+                    optionsMenu.style.left = (rect.right - 140) + "px";
+                }
             });
             div.querySelector(".btn-cancel-comment-menu").addEventListener("click", () => {
                 optionsMenu.classList.remove("show");
