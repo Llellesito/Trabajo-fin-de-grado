@@ -114,42 +114,291 @@ hr {
     overflow-y: auto;
     scrollbar-width: thin;
     margin: 0 !important;
+    background-color: var(--bg-card);
     border: 1px solid var(--border-soft);
+    border-radius: 10px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Avatar: anular max-width:100% del img global */
+/* Cabecera del modal (header del post) */
+.modal .post-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    position: relative;
+    gap: 10px;
+}
+
+/* Avatar en el modal - visible y bien tamaño */
 .modal .post-avatar {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px;
-    max-width: 36px !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    max-width: 40px !important;
     border-radius: 50%;
     object-fit: cover;
-    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.modal .username {
+    margin: 0;
+    font-size: 15px;
+    font-weight: bold;
+    flex: 1;
+}
+
+.modal .username a {
+    color: var(--texto-general);
+    text-decoration: none;
+}
+
+.modal .post-header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
     flex-shrink: 0;
 }
 
 /* Botón cerrar */
 .modal-close {
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
     line-height: 1;
     flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--text-low);
+    padding: 0;
+    transition: color 150ms;
 }
 
-/* Imagen del modal: 400x400 cuadrada */
+.modal-close:hover {
+    color: var(--texto-general);
+}
+
+/* Imagen del modal: ancho completo, altura automática */
 .modal .post-media {
     width: 100% !important;
-    height: 400px !important;
+    max-height: 400px !important;
     object-fit: cover;
+    margin: 10px 0;
+    border-radius: 10px;
+    display: block;
+}
+
+/* Contenido del modal */
+.modal .post-content {
+    width: 100%;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 10px 0;
+    box-sizing: border-box;
+}
+
+.modal .post-content p {
+    margin: 0;
 }
 
 .modal-text-content {
-    margin: 4px 0 0 0;
+    margin: 0;
+}
+
+/* Footer del post en modal */
+.modal .post-footer {
+    margin-top: 12px;
+    display: flex;
+    gap: 12px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 10px;
+    align-items: center;
+}
+
+/* Botones en modal - contenedor */
+.modal .boton {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-low);
+    transition: color 150ms;
+}
+
+.modal .boton:hover {
+    color: var(--texto-general);
+}
+
+.modal .boton strong {
+    font-weight: 400;
+    font-size: 12px;
+    color: var(--text-low);
+}
+
+.modal .boton:hover strong {
+    color: var(--texto-general);
+}
+
+/* Botón like */
+.modal .btn-like-ajax {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0;
+    color: var(--text-low);
+    display: flex;
+    align-items: center;
+    transition: transform 150ms;
+}
+
+.modal .btn-like-ajax:hover {
+    transform: scale(1.2);
+}
+
+/* Botón comentarios */
+.modal .btn-toggle-comments {
+    font-size: 16px;
+    border: none;
+    background: none;
+    color: var(--text-low);
+    cursor: pointer;
+    transition: transform 150ms;
+    padding: 0;
+}
+
+.modal .btn-toggle-comments:hover {
+    transform: scale(1.2);
 }
 
 /* Comentarios dentro del modal */
+.modal .comments-section {
+    display: none;
+    margin-top: 10px;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 10px;
+}
+
 .modal .comments-section.open {
     display: block;
+}
+
+.modal .comments-list {
+    margin-bottom: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.modal .comment-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.modal .comment-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.modal .comment-body {
+    background-color: var(--bg-deep);
+    border-radius: 12px;
+    padding: 8px 12px;
+    flex: 1;
+    font-size: 13px;
+}
+
+.modal .comment-username {
+    font-weight: bold;
+    font-size: 12px;
+    color: var(--text-low);
+    margin-bottom: 2px;
+}
+
+.modal .comment-username a {
+    color: var(--text-low);
+    text-decoration: none;
+}
+
+.modal .comment-username a:hover {
+    text-decoration: underline;
+}
+
+.modal .comment-text {
+    color: var(--texto-general);
+    word-break: break-word;
+    margin: 0;
+}
+
+.modal .comment-date {
+    font-size: 11px;
+    color: var(--text-low);
+    margin-top: 2px;
+}
+
+.modal .comment-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+.modal .comment-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.modal .comment-input {
+    flex: 1;
+    background-color: var(--bg-deep);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: var(--texto-general);
+    font-size: 13px;
+    outline: none;
+}
+
+.modal .comment-input:focus {
+    border-color: var(--blue-light);
+}
+
+.modal .btn-send-comment {
+    background-color: var(--blue-main);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: var(--texto-general);
+    cursor: pointer;
+    font-size: 13px;
+    transition: background-color 150ms;
+}
+
+.modal .btn-send-comment:hover {
+    background-color: var(--blue-light);
+}
+
+.modal .comments-empty {
+    color: var(--text-low);
+    font-size: 13px;
+    text-align: center;
+    padding: 10px 0;
+}
+
+.modal .post-date {
+    font-size: 12px;
+    color: var(--text-low);
 }

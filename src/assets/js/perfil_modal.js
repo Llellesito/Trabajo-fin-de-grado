@@ -20,15 +20,17 @@ document.addEventListener("DOMContentLoaded", () => {
         img.addEventListener("click", () => {
             currentPostId = img.getAttribute("data-id");
 
+            // Imagen del post — usar src de la miniatura directamente
             modalImg.src = img.src;
             modalImg.style.display = "block";
             modalText.textContent = img.getAttribute("data-text");
             modalDate.textContent = img.getAttribute("data-date");
 
-            // Avatar y username dinámicos
-            document.getElementById("modal-avatar").src = img.getAttribute("data-avatar");
-            document.getElementById("modal-username").textContent = img.getAttribute("data-username");
-            document.getElementById("modal-username-link").href = "perfil.php?id=" + img.getAttribute("data-user-id");
+            // Avatar y username desde variables PHP → JS globales (evita base64 en atributo)
+            document.getElementById("modal-avatar").src = window.PROFILE_AVATAR ?? "";
+            document.getElementById("modal-username").textContent = window.PROFILE_USERNAME ?? "";
+            document.getElementById("modal-username-link").href =
+                "perfil.php?id=" + (window.PROFILE_USER_ID ?? "");
 
             modalLikeBtn.setAttribute("data-id", currentPostId);
             modalLikeBtn.querySelector(".icon").textContent =
