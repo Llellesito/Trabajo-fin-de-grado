@@ -123,22 +123,33 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
                     $stmtComments->execute([$post['id_publicacion']]);
                     $commentsCount = $stmtComments->fetchColumn();
                 ?>
-                    <div class="post-card">
-                        <div class="post-content">
-
-                            <?php if (!empty($post['media'])): ?>
-                                <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
-                                    class="post-image"
-                                    data-id="<?= $post['id_publicacion'] ?>"
-                                    data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
-                                    data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
-                                    data-likes="<?= $likesCount ?>"
-                                    data-comments="<?= $commentsCount ?>"
-                                    data-user-liked="<?= $yaTieneLike ? '1' : '0' ?>">
+                    <div class="post-card <?= empty($post['media']) ? 'text-only' : '' ?>">
+                        <?php if (!empty($post['media'])): ?>
+                            <img src="data:image/jpeg;base64,<?= base64_encode($post['media']); ?>"
+                                class="post-image"
+                                data-id="<?= $post['id_publicacion'] ?>"
+                                data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
+                                data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
+                                data-likes="<?= $likesCount ?>"
+                                data-comments="<?= $commentsCount ?>"
+                                data-user-liked="<?= $yaTieneLike ? '1' : '0' ?>">
+                            <?php if (!empty($post['contenido_texto'])): ?>
+                                <div class="post-overlay">
+                                    <div class="ov-text"><?= htmlspecialchars($post['contenido_texto']) ?></div>
+                                </div>
                             <?php endif; ?>
-                            <!-- --- Contenido del texto de las publicaciones de los posts --- -->
-                            <p><?= nl2br(htmlspecialchars($post['contenido_texto'])); ?></p>
-                        </div>
+                        <?php else: ?>
+                            <div class="post-text-content"
+                                data-id="<?= $post['id_publicacion'] ?>"
+                                data-text="<?= htmlspecialchars($post['contenido_texto']); ?>"
+                                data-date="<?= htmlspecialchars($post['fecha_publicacion']); ?>"
+                                data-likes="<?= $likesCount ?>"
+                                data-comments="<?= $commentsCount ?>"
+                                data-user-liked="<?= $yaTieneLike ? '1' : '0' ?>"
+                                style="cursor:pointer;width:100%;height:100%;display:flex;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;">
+                                <?= nl2br(htmlspecialchars($post['contenido_texto'])) ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
             </div>

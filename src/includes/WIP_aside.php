@@ -197,7 +197,7 @@
                 </a>
             </li>
             <li>
-                <a href="#" class="nav-link">
+                <a href="/buscador.php" class="nav-link">
                     <span class="icon">🔍</span>
                     <span class="text">Buscador</span>
                 </a>

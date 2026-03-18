@@ -1,4 +1,10 @@
 <?php
+
+/**
+ * post_card.php
+ * Si $publicaciones ya está definido desde fuera, lo usa directamente.
+ * Si no, hace su propia query (compatibilidad con páginas antiguas).
+ */
 require_once('includes/db.php');
 require_once('clases/Post.php');
 require_once('includes/lib.php');
@@ -6,18 +12,19 @@ require_once('includes/lib.php');
 $postModel = new Post($pdo);
 $id_usuario_sesion = $_SESSION['id_usuario'] ?? 0;
 
-$sql = "SELECT p.*, 
-               u.username, 
-               u.foto_perfil, 
-               u.id_usuario AS autor_id,
-               (SELECT COUNT(*) FROM likes WHERE id_publicacion = p.id_publicacion) as totalLikes,
-               (SELECT COUNT(*) FROM comentarios WHERE id_publicacion = p.id_publicacion AND (id_padre IS NULL OR id_padre = 0)) as totalComentarios
-        FROM publicaciones p
-        JOIN usuarios u ON p.id_usuario = u.id_usuario
-        ORDER BY p.fecha_publicacion DESC";
-
-$stmt = $pdo->query($sql);
-$publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+if (!isset($publicaciones)) {
+    $sql = "SELECT p.*,
+                   u.username,
+                   u.foto_perfil,
+                   u.id_usuario AS autor_id,
+                   (SELECT COUNT(*) FROM likes WHERE id_publicacion = p.id_publicacion) as totalLikes,
+                   (SELECT COUNT(*) FROM comentarios WHERE id_publicacion = p.id_publicacion AND (id_padre IS NULL OR id_padre = 0)) as totalComentarios
+            FROM publicaciones p
+            JOIN usuarios u ON p.id_usuario = u.id_usuario
+            ORDER BY p.fecha_publicacion DESC";
+    $stmt = $pdo->query($sql);
+    $publicaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 foreach ($publicaciones as $post):
     $id_post = $post['id_publicacion'];
@@ -25,6 +32,9 @@ foreach ($publicaciones as $post):
 ?>
     <div class="post-card">
         <div class="post-header">
+            <?php if (!empty($es_sugerencia)): ?>
+                <span class="badge-sugerencia">· Sugerencia</span>
+            <?php endif; ?>
             <img src="<?= avatarSrc($post['foto_perfil'], $post['username']) ?>" alt="Foto de perfil"
                 class="post-avatar">
             <h3 class="username">
@@ -78,149 +88,47 @@ foreach ($publicaciones as $post):
     </div>
 <?php endforeach; ?>
 
-<script>
-    const SESSION_USER_ID = <?= $id_usuario_sesion ?>;
+<?php if (!isset($skip_post_card_js)): ?>
+    <script>
+        const SESSION_USER_ID = <?= $id_usuario_sesion ?>;
 
-    // ── Toggle sección comentarios ──────────────────────────────────────────────
-    document.querySelectorAll('.btn-toggle-comments').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const postId = this.dataset.id;
-            const section = document.getElementById('comments-' + postId);
-            const isHidden = !section.classList.contains('open');
-            section.classList.toggle('open', isHidden);
-            if (isHidden) cargarComentarios(postId);
+        document.querySelectorAll('.btn-toggle-comments').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const postId = this.dataset.id;
+                const section = document.getElementById('comments-' + postId);
+                const isHidden = !section.classList.contains('open');
+                section.classList.toggle('open', isHidden);
+                if (isHidden) cargarComentarios(postId);
+            });
         });
-    });
 
-    // ── Enviar comentario raíz ──────────────────────────────────────────────────
-    document.querySelectorAll('.btn-send-comment').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const postId = this.dataset.id;
-            enviarComentario(postId, null);
-        });
-    });
-
-    document.querySelectorAll('[id^="comment-input-"]').forEach(input => {
-        input.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                const postId = this.id.replace('comment-input-', '');
+        document.querySelectorAll('.btn-send-comment').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const postId = this.dataset.id;
                 enviarComentario(postId, null);
-            }
+            });
         });
-    });
 
-    function enviarComentario(postId, idPadre) {
-        const inputId = idPadre ? 'reply-input-' + idPadre : 'comment-input-' + postId;
-        const input = document.getElementById(inputId);
-        const contenido = input.value.trim();
-        if (!contenido) return;
-
-        const formData = new FormData();
-        formData.append('accion', 'agregar');
-        formData.append('id_publicacion', postId);
-        formData.append('contenido', contenido);
-        if (idPadre) formData.append('id_padre', idPadre);
-
-        fetch('actions/comment_action.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    input.value = '';
-                    // Cerrar caja de respuesta si era reply
-                    if (idPadre) {
-                        const replyBox = document.getElementById('reply-box-' + idPadre);
-                        if (replyBox) replyBox.remove();
-                    }
-                    renderComentarios(postId, data.comentarios);
-                    const countEl = document.querySelector('.comment-count-' + postId);
-                    if (countEl) countEl.textContent = data.totalComentarios;
+        document.querySelectorAll('[id^="comment-input-"]').forEach(input => {
+            input.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const postId = this.id.replace('comment-input-', '');
+                    enviarComentario(postId, null);
                 }
             });
-    }
-
-    // ── Cargar comentarios vía AJAX ─────────────────────────────────────────────
-    function cargarComentarios(postId) {
-        fetch('actions/comment_action.php?accion=obtener&id_publicacion=' + postId)
-            .then(r => r.json())
-            .then(data => {
-                if (data.status === 'success') renderComentarios(postId, data.comentarios);
-            });
-    }
-
-    // ── Render comentarios + respuestas ────────────────────────────────────────
-    function renderComentarios(postId, comentarios) {
-        const lista = document.getElementById('comments-list-' + postId);
-        lista.innerHTML = '';
-
-        if (comentarios.length === 0) {
-            lista.innerHTML = '<p class="comments-empty">Sé el primero en comentar 💬</p>';
-            return;
-        }
-
-        comentarios.forEach(c => {
-            lista.appendChild(buildComment(c, postId, false));
-
-            // Respuestas
-            if (c.respuestas && c.respuestas.length > 0) {
-                const repliesWrap = document.createElement('div');
-                repliesWrap.className = 'replies-list';
-                c.respuestas.forEach(r => repliesWrap.appendChild(buildComment(r, postId, true)));
-                lista.appendChild(repliesWrap);
-            }
         });
-    }
 
-    function buildComment(c, postId, esRespuesta) {
-        const div = document.createElement('div');
-        div.className = esRespuesta ? 'comment-item comment-reply' : 'comment-item';
+        function enviarComentario(postId, idPadre) {
+            const inputId = idPadre ? 'reply-input-' + idPadre : 'comment-input-' + postId;
+            const input = document.getElementById(inputId);
+            const contenido = input.value.trim();
+            if (!contenido) return;
 
-        const avatarSrc = c.foto_perfil ?
-            'data:image/jpeg;base64,' + c.foto_perfil :
-            'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.username) + '&background=444&color=fff';
-
-        const liked = c.yaDioLike == 1 || c.yaDioLike === true;
-        const likeHeart = liked ? '❤️' : '🤍';
-
-        const deleteBtn = (parseInt(c.id_usuario) === SESSION_USER_ID) ?
-            `<div class="comment-options-container">
-               <button class="btn-comment-options" title="Opciones">⋮</button>
-               <div class="comment-options-menu">
-                   <button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${postId}">🗑️ Eliminar</button>
-                   <button class="btn-cancel-comment-menu">Cancelar</button>
-               </div>
-           </div>` :
-            '';
-
-        const replyBtn = !esRespuesta ?
-            `<button class="btn-reply-comment" data-comentario="${c.id_comentario}" data-post="${postId}">↩ Responder</button>` :
-            '';
-
-        div.innerHTML = `
-        <img src="${avatarSrc}" class="comment-avatar" alt="${escapeHtml(c.username)}">
-        <div class="comment-body">
-            <div class="comment-username"><a href="perfil.php?id=${c.id_usuario}">@${escapeHtml(c.username)}</a></div>
-            <div class="comment-text">${escapeHtml(c.contenido)}</div>
-            <div class="comment-actions">
-                <button class="btn-like-comment ${liked ? 'liked' : ''}" data-comentario="${c.id_comentario}">
-                    <span class="like-heart">${likeHeart}</span>
-                    <span class="like-count-comment">${c.totalLikes ?? 0}</span>
-                </button>
-                ${replyBtn}
-                <span class="comment-date">${c.fecha_comentario}</span>
-            </div>
-        </div>
-        ${deleteBtn}
-    `;
-
-        // Like comentario
-        div.querySelector('.btn-like-comment').addEventListener('click', function() {
-            const idComentario = this.dataset.comentario;
             const formData = new FormData();
-            formData.append('accion', 'like_comentario');
-            formData.append('id_comentario', idComentario);
+            formData.append('accion', 'agregar');
+            formData.append('id_publicacion', postId);
+            formData.append('contenido', contenido);
+            if (idPadre) formData.append('id_padre', idPadre);
 
             fetch('actions/comment_action.php', {
                     method: 'POST',
@@ -229,72 +137,87 @@ foreach ($publicaciones as $post):
                 .then(r => r.json())
                 .then(data => {
                     if (data.status === 'success') {
-                        this.querySelector('.like-heart').textContent = data.liked ? '❤️' : '🤍';
-                        this.querySelector('.like-count-comment').textContent = data.totalLikes;
-                        this.classList.toggle('liked', data.liked);
+                        input.value = '';
+                        if (idPadre) {
+                            const replyBox = document.getElementById('reply-box-' + idPadre);
+                            if (replyBox) replyBox.remove();
+                        }
+                        renderComentarios(postId, data.comentarios);
+                        const countEl = document.querySelector('.comment-count-' + postId);
+                        if (countEl) countEl.textContent = data.totalComentarios;
                     }
                 });
-        });
+        }
 
-        // Responder
-        const replyBtnEl = div.querySelector('.btn-reply-comment');
-        if (replyBtnEl) {
-            replyBtnEl.addEventListener('click', function() {
-                const idComentario = this.dataset.comentario;
-                const existingBox = document.getElementById('reply-box-' + idComentario);
-                if (existingBox) {
-                    existingBox.remove();
-                    return;
+        function cargarComentarios(postId) {
+            fetch('actions/comment_action.php?accion=obtener&id_publicacion=' + postId)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') renderComentarios(postId, data.comentarios);
+                });
+        }
+
+        function renderComentarios(postId, comentarios) {
+            const lista = document.getElementById('comments-list-' + postId);
+            lista.innerHTML = '';
+            if (comentarios.length === 0) {
+                lista.innerHTML = '<p class="comments-empty">Sé el primero en comentar 💬</p>';
+                return;
+            }
+            comentarios.forEach(c => {
+                lista.appendChild(buildComment(c, postId, false));
+                if (c.respuestas && c.respuestas.length > 0) {
+                    const repliesWrap = document.createElement('div');
+                    repliesWrap.className = 'replies-list';
+                    c.respuestas.forEach(r => repliesWrap.appendChild(buildComment(r, postId, true)));
+                    lista.appendChild(repliesWrap);
                 }
-
-                const replyBox = document.createElement('div');
-                replyBox.className = 'reply-box';
-                replyBox.id = 'reply-box-' + idComentario;
-                replyBox.innerHTML = `
-                <input type="text" id="reply-input-${idComentario}" class="comment-input reply-input"
-                       placeholder="Responde a @${escapeHtml(c.username)}..." maxlength="500">
-                <button class="btn-send-reply btn-send-comment" data-post="${postId}" data-padre="${idComentario}">Enviar</button>
-            `;
-                div.after(replyBox);
-
-                replyBox.querySelector('.btn-send-reply').addEventListener('click', function() {
-                    enviarComentario(this.dataset.post, this.dataset.padre);
-                });
-                replyBox.querySelector('input').addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') enviarComentario(postId, idComentario);
-                });
-                replyBox.querySelector('input').focus();
             });
         }
 
-        // Menú ⋮ del comentario
-        const optionsBtnEl = div.querySelector('.btn-comment-options');
-        if (optionsBtnEl) {
-            const optionsMenu = div.querySelector('.comment-options-menu');
+        function buildComment(c, postId, esRespuesta) {
+            const div = document.createElement('div');
+            div.className = esRespuesta ? 'comment-item comment-reply' : 'comment-item';
 
-            optionsBtnEl.addEventListener('click', function(e) {
-                e.stopPropagation();
-                // Cerrar todos los demás menús de comentario
-                document.querySelectorAll('.comment-options-menu.show').forEach(m => {
-                    if (m !== optionsMenu) m.classList.remove('show');
-                });
-                optionsMenu.classList.toggle('show');
-            });
+            const avatarSrc = c.foto_perfil ?
+                'data:image/jpeg;base64,' + c.foto_perfil :
+                'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.username) + '&background=444&color=fff';
 
-            div.querySelector('.btn-cancel-comment-menu').addEventListener('click', function() {
-                optionsMenu.classList.remove('show');
-            });
-        }
+            const liked = c.yaDioLike == 1 || c.yaDioLike === true;
+            const deleteBtn = (parseInt(c.id_usuario) === SESSION_USER_ID) ?
+                `<div class="comment-options-container">
+                 <button class="btn-comment-options" title="Opciones">⋮</button>
+                 <div class="comment-options-menu">
+                     <button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${postId}">🗑️ Eliminar</button>
+                     <button class="btn-cancel-comment-menu">Cancelar</button>
+                 </div>
+               </div>` : '';
 
-        // Borrar
-        const deleteBtnEl = div.querySelector('.btn-delete-comment');
-        if (deleteBtnEl) {
-            deleteBtnEl.addEventListener('click', function() {
+            const replyBtn = !esRespuesta ?
+                `<button class="btn-reply-comment" data-comentario="${c.id_comentario}" data-post="${postId}">↩ Responder</button>` :
+                '';
+
+            div.innerHTML = `
+        <img src="${avatarSrc}" class="comment-avatar" alt="${escapeHtml(c.username)}">
+        <div class="comment-body">
+            <div class="comment-username"><a href="perfil.php?id=${c.id_usuario}">@${escapeHtml(c.username)}</a></div>
+            <div class="comment-text">${escapeHtml(c.contenido)}</div>
+            <div class="comment-actions">
+                <button class="btn-like-comment ${liked ? 'liked' : ''}" data-comentario="${c.id_comentario}">
+                    <span class="like-heart">${liked ? '❤️' : '🤍'}</span>
+                    <span class="like-count-comment">${c.totalLikes ?? 0}</span>
+                </button>
+                ${replyBtn}
+                <span class="comment-date">${c.fecha_comentario}</span>
+            </div>
+        </div>
+        ${deleteBtn}`;
+
+            div.querySelector('.btn-like-comment').addEventListener('click', function() {
+                const idComentario = this.dataset.comentario;
                 const formData = new FormData();
-                formData.append('accion', 'borrar');
-                formData.append('id_comentario', this.dataset.comentario);
-                formData.append('id_publicacion', this.dataset.publicacion);
-
+                formData.append('accion', 'like_comentario');
+                formData.append('id_comentario', idComentario);
                 fetch('actions/comment_action.php', {
                         method: 'POST',
                         body: formData
@@ -302,38 +225,100 @@ foreach ($publicaciones as $post):
                     .then(r => r.json())
                     .then(data => {
                         if (data.status === 'success') {
-                            cargarComentarios(postId);
-                            const countEl = document.querySelector('.comment-count-' + postId);
-                            if (countEl) countEl.textContent = data.totalComentarios;
+                            this.querySelector('.like-heart').textContent = data.liked ? '❤️' : '🤍';
+                            this.querySelector('.like-count-comment').textContent = data.totalLikes;
+                            this.classList.toggle('liked', data.liked);
                         }
                     });
             });
+
+            const replyBtnEl = div.querySelector('.btn-reply-comment');
+            if (replyBtnEl) {
+                replyBtnEl.addEventListener('click', function() {
+                    const idComentario = this.dataset.comentario;
+                    const existingBox = document.getElementById('reply-box-' + idComentario);
+                    if (existingBox) {
+                        existingBox.remove();
+                        return;
+                    }
+                    const replyBox = document.createElement('div');
+                    replyBox.className = 'reply-box';
+                    replyBox.id = 'reply-box-' + idComentario;
+                    replyBox.innerHTML = `
+                <input type="text" id="reply-input-${idComentario}" class="comment-input reply-input"
+                       placeholder="Responde a @${escapeHtml(c.username)}..." maxlength="500">
+                <button class="btn-send-reply btn-send-comment" data-post="${postId}" data-padre="${idComentario}">Enviar</button>`;
+                    div.after(replyBox);
+                    replyBox.querySelector('.btn-send-reply').addEventListener('click', function() {
+                        enviarComentario(this.dataset.post, this.dataset.padre);
+                    });
+                    replyBox.querySelector('input').addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') enviarComentario(postId, idComentario);
+                    });
+                    replyBox.querySelector('input').focus();
+                });
+            }
+
+            const optionsBtnEl = div.querySelector('.btn-comment-options');
+            if (optionsBtnEl) {
+                const optionsMenu = div.querySelector('.comment-options-menu');
+                optionsBtnEl.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    document.querySelectorAll('.comment-options-menu.show').forEach(m => {
+                        if (m !== optionsMenu) m.classList.remove('show');
+                    });
+                    optionsMenu.classList.toggle('show');
+                });
+                div.querySelector('.btn-cancel-comment-menu').addEventListener('click', () => optionsMenu.classList.remove('show'));
+            }
+
+            const deleteBtnEl = div.querySelector('.btn-delete-comment');
+            if (deleteBtnEl) {
+                deleteBtnEl.addEventListener('click', function() {
+                    const formData = new FormData();
+                    formData.append('accion', 'borrar');
+                    formData.append('id_comentario', this.dataset.comentario);
+                    formData.append('id_publicacion', this.dataset.publicacion);
+                    fetch('actions/comment_action.php', {
+                            method: 'POST',
+                            body: formData
+                        })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.status === 'success') {
+                                cargarComentarios(postId);
+                                const countEl = document.querySelector('.comment-count-' + postId);
+                                if (countEl) countEl.textContent = data.totalComentarios;
+                            }
+                        });
+                });
+            }
+
+            return div;
         }
 
-        return div;
-    }
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
+        function toggleMenu(postId) {
+            event.stopPropagation();
+            const menu = document.getElementById('menu-' + postId);
+            document.querySelectorAll('.options-menu').forEach(m => {
+                if (m.id !== 'menu-' + postId) m.classList.remove('show');
+            });
+            menu.classList.toggle('show');
+        }
 
-    function toggleMenu(postId) {
-        event.stopPropagation();
-        const menu = document.getElementById('menu-' + postId);
-        document.querySelectorAll('.options-menu').forEach(m => {
-            if (m.id !== 'menu-' + postId) m.classList.remove('show');
+        window.addEventListener('click', function(event) {
+            if (!event.target.closest('.btn-options') && !event.target.closest('.options-menu')) {
+                document.querySelectorAll('.options-menu').forEach(menu => menu.classList.remove('show'));
+            }
+            if (!event.target.closest('.btn-comment-options') && !event.target.closest('.comment-options-menu')) {
+                document.querySelectorAll('.comment-options-menu.show').forEach(menu => menu.classList.remove('show'));
+            }
         });
-        menu.classList.toggle('show');
-    }
-
-    window.addEventListener("click", function(event) {
-        if (!event.target.closest('.btn-options') && !event.target.closest('.options-menu')) {
-            document.querySelectorAll('.options-menu').forEach(menu => menu.classList.remove('show'));
-        }
-        if (!event.target.closest('.btn-comment-options') && !event.target.closest('.comment-options-menu')) {
-            document.querySelectorAll('.comment-options-menu.show').forEach(menu => menu.classList.remove('show'));
-        }
-    });
-</script>
+    </script>
+<?php endif; ?>

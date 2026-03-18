@@ -510,3 +510,47 @@ a {
     font-size: 13px;
     padding: 6px 12px;
 }
+
+.post-card:has(.badge-sugerencia) .post-header {
+    flex-wrap: wrap;
+}
+
+.badge-sugerencia {
+    width: 100%;
+    font-size: 12px;
+    color: var(--text-low);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-sugerencia::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371767c'%3E%3Cpath d='M12 1.5C6.2 1.5 1.5 6.2 1.5 12S6.2 22.5 12 22.5 22.5 17.8 22.5 12 17.8 1.5 12 1.5zm0 4c.8 0 1.5.7 1.5 1.5S12.8 8.5 12 8.5 10.5 7.8 10.5 7s.7-1.5 1.5-1.5zm2 9.5h-1v-5h-2v1h1v4H11v1h3v-1z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    flex-shrink: 0;
+}
+
+.feed-empty {
+    text-align: center;
+    color: var(--text-low);
+    padding: 40px 20px;
+    font-size: 14px;
+    max-width: 430px;
+    margin: 0 auto;
+}
+
+.feed-empty .empty-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+}
+
+.feed-empty a {
+    color: var(--magenta-glow-claro);
+    text-decoration: underline;
+}
