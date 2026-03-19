@@ -88,7 +88,7 @@ foreach ($publicaciones as $post):
     </div>
 <?php endforeach; ?>
 
-<?php if (!isset($skip_post_card_js)): ?>
+<?php if (empty($skip_post_card_js)): ?>
     <script>
         const SESSION_USER_ID = <?= $id_usuario_sesion ?>;
 

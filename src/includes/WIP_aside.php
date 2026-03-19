@@ -203,6 +203,12 @@
                 </a>
             </li>
             <li>
+                <a href="/mensajes.php" class="nav-link">
+                    <span class="icon">💬</span>
+                    <span class="text">Mensajes</span>
+                </a>
+            </li>
+            <li>
                 <a href="javascript:void(0)" class="nav-link" id="abrirModal">
                     <span class="icon">➕</span>
                     <span class="text">Subir publicacion</span>

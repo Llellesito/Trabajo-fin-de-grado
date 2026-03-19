@@ -158,46 +158,45 @@ hr {
 }
 
 .modal .modal-content {
-    width: 460px !important;
+    width: 430px;
     max-width: 95vw;
-    max-height: 90vh;
-    overflow: hidden;
+    max-height: 92vh;
+    overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
-    margin: 0 !important;
+    scrollbar-color: var(--border-soft) transparent;
     background-color: var(--bg-card);
-    border: 1px solid var(--border-soft);
+    border: 1px solid var(--shadow-posts);
     border-radius: 10px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     padding: 15px;
     display: flex;
     flex-direction: column;
 }
 
-/* Cabecera del modal (header del post) */
+/* Cabecera — igual que .post-header */
 .modal .post-header {
     display: flex;
     align-items: center;
     margin-bottom: 10px;
     position: relative;
-    gap: 10px;
+    gap: 0;
 }
 
-/* Avatar en el modal - visible y bien tamaño */
 .modal .post-avatar {
-    width: 40px !important;
-    height: 40px !important;
-    min-width: 40px !important;
-    max-width: 40px !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
     border-radius: 50%;
     object-fit: cover;
+    margin-right: 10px;
     flex-shrink: 0;
 }
 
 .modal .username {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: bold;
-    flex: 1;
 }
 
 .modal .username a {
@@ -209,101 +208,90 @@ hr {
     margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
+    gap: 10px;
 }
 
-/* Botón cerrar */
+.modal .post-date {
+    font-size: 12px;
+    color: var(--text-low);
+}
+
 .modal-close {
     cursor: pointer;
     font-size: 18px;
-    line-height: 1;
-    flex-shrink: 0;
     background: none;
     border: none;
     color: var(--text-low);
-    padding: 0;
+    padding: 0 5px;
     transition: color 150ms;
+    line-height: 1;
 }
 
 .modal-close:hover {
     color: var(--texto-general);
 }
 
-/* Imagen del modal: ancho completo, altura automática */
+/* Imagen — igual que .post-media */
 .modal .post-media {
-    width: 100% !important;
-    max-height: 400px !important;
+    width: 100%;
+    max-height: 400px;
     object-fit: cover;
-    margin: 10px 0;
-    border-radius: 10px;
     display: block;
+    border-radius: 10px;
+    margin-bottom: 0;
 }
 
-/* Contenido del modal */
+/* Texto */
 .modal .post-content {
-    width: 100%;
     font-size: 14px;
     line-height: 1.5;
     margin: 10px 0;
-    box-sizing: border-box;
 }
 
 .modal .post-content p {
     margin: 0;
 }
 
-.modal-text-content {
-    margin: 0;
-}
-
-/* Footer del post en modal */
+/* Footer — igual que .post-footer */
 .modal .post-footer {
     margin-top: 12px;
     display: flex;
-    gap: 12px;
+    gap: 6px;
     border-top: 1px solid var(--border-soft);
     padding-top: 10px;
-    align-items: center;
 }
 
-/* Botones en modal - contenedor */
 .modal .boton {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0;
-    border-radius: 0;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
     background: transparent;
-    border: none;
+    border: 1px solid transparent;
     cursor: pointer;
     font-size: 14px;
     color: var(--text-low);
-    transition: color 150ms;
+    transition: background 150ms, color 150ms, border-color 150ms;
 }
 
 .modal .boton:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: var(--border-soft);
     color: var(--texto-general);
 }
 
 .modal .boton strong {
-    font-weight: 400;
-    font-size: 12px;
-    color: var(--text-low);
+    font-weight: 500;
+    font-size: 13px;
 }
 
-.modal .boton:hover strong {
-    color: var(--texto-general);
-}
-
-/* Botón like */
 .modal .btn-like-ajax {
     background: none;
     border: none;
     cursor: pointer;
     font-size: 16px;
     padding: 0;
-    color: var(--text-low);
     display: flex;
     align-items: center;
     transition: transform 150ms;
@@ -313,7 +301,6 @@ hr {
     transform: scale(1.2);
 }
 
-/* Botón comentarios */
 .modal .btn-toggle-comments {
     font-size: 16px;
     border: none;
@@ -328,31 +315,56 @@ hr {
     transform: scale(1.2);
 }
 
-/* Comentarios dentro del modal */
+/* Comentarios */
 .modal .comments-section {
     display: none;
     margin-top: 10px;
     border-top: 1px solid var(--border-soft);
     padding-top: 10px;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
 }
 
 .modal .comments-section.open {
-    display: flex;
+    display: block;
 }
 
 .modal .comments-list {
+    margin-bottom: 8px;
+}
+
+.modal .comment-form {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.modal .comment-input {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    scrollbar-width: thin;
-    scrollbar-color: var(--border-soft) transparent;
-    margin-bottom: 0;
-    padding-right: 4px;
+    background-color: var(--bg-deep);
+    border: 1px solid var(--border-soft);
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: var(--texto-general);
+    font-size: 14px;
+    outline: none;
+}
+
+.modal .comment-input:focus {
+    border-color: var(--blue-light);
+}
+
+.modal .btn-send-comment {
+    background-color: var(--blue-main);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 14px;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 150ms;
+}
+
+.modal .btn-send-comment:hover {
+    background-color: var(--blue-light);
 }
 
 .modal .comment-item {
@@ -363,8 +375,8 @@ hr {
 }
 
 .modal .comment-avatar {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
@@ -373,14 +385,15 @@ hr {
 .modal .comment-body {
     background-color: var(--bg-deep);
     border-radius: 12px;
-    padding: 8px 12px;
+    padding: 6px 12px;
     flex: 1;
-    font-size: 13px;
+    font-size: 14px;
+    min-width: 0;
 }
 
 .modal .comment-username {
     font-weight: bold;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-low);
     margin-bottom: 2px;
 }
@@ -397,13 +410,18 @@ hr {
 .modal .comment-text {
     color: var(--texto-general);
     word-break: break-word;
-    margin: 0;
 }
 
 .modal .comment-date {
     font-size: 11px;
     color: var(--text-low);
-    margin-top: 2px;
+    margin-left: auto;
+}
+
+.modal .comments-empty {
+    color: var(--text-low);
+    font-size: 13px;
+    text-align: center;
 }
 
 .modal .comment-actions {
@@ -414,56 +432,6 @@ hr {
     flex-wrap: wrap;
 }
 
-.modal .comment-form {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-    flex-shrink: 0;
-}
-
-.modal .comment-input {
-    flex: 1;
-    background-color: var(--bg-deep);
-    border: 1px solid var(--border-soft);
-    border-radius: 20px;
-    padding: 8px 14px;
-    color: var(--texto-general);
-    font-size: 13px;
-    outline: none;
-}
-
-.modal .comment-input:focus {
-    border-color: var(--blue-light);
-}
-
-.modal .btn-send-comment {
-    background-color: var(--blue-main);
-    border: none;
-    border-radius: 20px;
-    padding: 8px 14px;
-    color: var(--texto-general);
-    cursor: pointer;
-    font-size: 13px;
-    transition: background-color 150ms;
-}
-
-.modal .btn-send-comment:hover {
-    background-color: var(--blue-light);
-}
-
-.modal .comments-empty {
-    color: var(--text-low);
-    font-size: 13px;
-    text-align: center;
-    padding: 10px 0;
-}
-
-.modal .post-date {
-    font-size: 12px;
-    color: var(--text-low);
-}
-
-/* Acciones de comentario (like, responder, fecha) */
 .modal .btn-like-comment {
     background: none;
     border: none;
@@ -496,7 +464,6 @@ hr {
     color: var(--blue-light);
 }
 
-/* Respuestas anidadas */
 .modal .replies-list {
     margin-left: 36px;
     border-left: 2px solid var(--border-soft);
@@ -505,15 +472,14 @@ hr {
 }
 
 .modal .comment-reply .comment-avatar {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
 }
 
 .modal .comment-reply .comment-body {
     font-size: 12px;
 }
 
-/* Caja de respuesta inline */
 .modal .reply-box {
     display: flex;
     gap: 8px;
@@ -521,28 +487,24 @@ hr {
 }
 
 .modal .reply-input {
-    font-size: 12px;
+    font-size: 13px;
     padding: 6px 12px;
 }
 
-/* Menú de opciones del comentario (⋮) */
 .modal .comment-options-container {
     position: relative;
     flex-shrink: 0;
+    align-self: center;
 }
 
 .modal .btn-comment-options {
     background: none;
     border: none;
     color: var(--text-low);
-    font-size: 14px;
+    font-size: 18px;
     cursor: pointer;
-    padding: 4px;
-    line-height: 1;
+    padding: 0 4px;
     transition: color 100ms;
-    flex-shrink: 0;
-    z-index: 101;
-    position: relative;
 }
 
 .modal .btn-comment-options:hover {
@@ -551,13 +513,15 @@ hr {
 
 .modal .comment-options-menu {
     display: none;
-    position: fixed;
+    position: absolute;
+    right: 0;
+    top: 24px;
     background-color: var(--bg-card);
     border: 1px solid var(--border-soft);
     border-radius: 8px;
     z-index: 10001;
     min-width: 140px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 

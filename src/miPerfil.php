@@ -49,7 +49,7 @@ $totalSeguidos = $pdo->query("SELECT COUNT(*) FROM seguidores WHERE id_seguidor 
 
     <!-- Modal -->
     <div id="postModal" class="modal">
-        <div class="modal-content post-card">
+        <div class="modal-content">
             <div class="post-header">
                 <img id="modal-avatar" src="" class="post-avatar" alt="avatar">
                 <h3 class="username">
