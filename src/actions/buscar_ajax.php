@@ -36,6 +36,7 @@ try {
             FROM usuarios
             WHERE (username LIKE ? OR nombre LIKE ?)
               AND id_usuario != ?
+              AND (shadowban IS NULL OR shadowban = 0)
             ORDER BY username ASC
             LIMIT 15
         ");
@@ -59,6 +60,7 @@ try {
             FROM publicaciones p
             JOIN usuarios u ON p.id_usuario = u.id_usuario
             WHERE p.contenido_texto LIKE ?
+              AND (u.shadowban IS NULL OR u.shadowban = 0)
             ORDER BY p.fecha_publicacion DESC
             LIMIT 15
         ");

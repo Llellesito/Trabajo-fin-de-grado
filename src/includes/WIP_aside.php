@@ -208,6 +208,14 @@
                     <span class="text">Mensajes</span>
                 </a>
             </li>
+            <?php if (isset($_SESSION['rol']) && in_array($_SESSION['rol'], ['admin', 'moderador'])): ?>
+                <li>
+                    <a href="/admin.php" class="nav-link">
+                        <span class="icon">🛡️</span>
+                        <span class="text">Administración</span>
+                    </a>
+                </li>
+            <?php endif; ?>
             <li>
                 <a href="javascript:void(0)" class="nav-link" id="abrirModal">
                     <span class="icon">➕</span>
