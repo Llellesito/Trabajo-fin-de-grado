@@ -18,6 +18,8 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
+ensureSanctionColumns($pdo);
+
 $id_usuario_sesion = (int)$_SESSION['id_usuario'];
 $query = trim($_GET['q'] ?? '');
 $tipo  = $_GET['tipo'] ?? 'usuarios';

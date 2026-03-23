@@ -12,7 +12,11 @@ if (!isset($_SESSION['usuario'])) {
 $id_usuario_sesion = (int)$_SESSION['id_usuario'];
 $postModel = new Post($pdo);
 
-// ── 1. Posts de gente que sigo ────────────────────────────────────────────────
+// Garantiza que las columnas de sanciones existen
+ensureSanctionColumns($pdo);
+
+
+// ── 1. Posts de gente que sigo (excluye shadowbaneados) ──────────────────────
 $stmt = $pdo->prepare("
     SELECT p.id_publicacion, p.contenido_texto, p.fecha_publicacion, p.media,
            u.id_usuario AS autor_id, u.username, u.foto_perfil,
@@ -23,14 +27,14 @@ $stmt = $pdo->prepare("
     JOIN usuarios u ON p.id_usuario = u.id_usuario
     JOIN seguidores s ON s.id_seguido = p.id_usuario
     WHERE s.id_seguidor = ?
+      AND (u.shadowban IS NULL OR u.shadowban = 0)
     ORDER BY p.fecha_publicacion DESC
     LIMIT 30
 ");
 $stmt->execute([$id_usuario_sesion]);
 $posts_seguidos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ── 2. Sugerencias (gente que NO sigo, excluyéndome a mí) ────────────────────
-// Ordenadas por likes en los últimos 60 días, luego por fecha
+// ── 2. Sugerencias (gente que NO sigo, excluyendo shadowbaneados) ────────────
 $stmt = $pdo->prepare("
     SELECT p.id_publicacion, p.contenido_texto, p.fecha_publicacion, p.media,
            u.id_usuario AS autor_id, u.username, u.foto_perfil,
@@ -43,6 +47,7 @@ $stmt = $pdo->prepare("
       AND p.id_usuario NOT IN (
           SELECT id_seguido FROM seguidores WHERE id_seguidor = ?
       )
+      AND (u.shadowban IS NULL OR u.shadowban = 0)
     ORDER BY totalLikes DESC, p.fecha_publicacion DESC
     LIMIT 20
 ");
@@ -83,6 +88,51 @@ if (empty($posts_seguidos)) {
     <title>8Mangos</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="shortcut icon" href="assets/images/8mangos.png">
+    <style>
+        .post-card:has(.badge-sugerencia) .post-header {
+            flex-wrap: wrap;
+        }
+
+        .badge-sugerencia {
+            width: 100%;
+            font-size: 12px;
+            color: var(--text-low);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge-sugerencia::before {
+            content: '';
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2371767c'%3E%3Cpath d='M12 1.5C6.2 1.5 1.5 6.2 1.5 12S6.2 22.5 12 22.5 22.5 17.8 22.5 12 17.8 1.5 12 1.5zm0 4c.8 0 1.5.7 1.5 1.5S12.8 8.5 12 8.5 10.5 7.8 10.5 7s.7-1.5 1.5-1.5zm2 9.5h-1v-5h-2v1h1v4H11v1h3v-1z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            flex-shrink: 0;
+        }
+
+        .feed-empty {
+            text-align: center;
+            color: var(--text-low);
+            padding: 40px 20px;
+            font-size: 14px;
+            max-width: 430px;
+            margin: 0 auto;
+        }
+
+        .feed-empty .empty-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+        }
+
+        .feed-empty a {
+            color: var(--magenta-glow-claro);
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
@@ -91,6 +141,7 @@ if (empty($posts_seguidos)) {
 
         <div class="posts">
             <?php include('includes/WIP_header.php') ?>
+
 
             <?php if (empty($feed_mezclado)): ?>
                 <div class="feed-empty">
