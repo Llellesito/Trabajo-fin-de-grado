@@ -42,15 +42,17 @@ foreach ($publicaciones as $post):
             </h3>
             <div class="post-header-right">
                 <span class="post-date"><?= htmlspecialchars($post['fecha_publicacion']); ?></span>
-                <?php if ($id_usuario_sesion == $post['autor_id']): ?>
-                    <div class="post-options-container">
-                        <button class="btn-options" onclick="toggleMenu(<?= $id_post ?>)">⋮</button>
-                        <div id="menu-<?= $id_post ?>" class="options-menu">
+                <div class="post-options-container">
+                    <button class="btn-options" onclick="toggleMenu(<?= $id_post ?>)">⋮</button>
+                    <div id="menu-<?= $id_post ?>" class="options-menu">
+                        <?php if ($id_usuario_sesion == $post['autor_id']): ?>
                             <a href="actions/editar_post.php?id=<?= $id_post ?>">✏️ Editar</a>
                             <a href="actions/borrar_post.php?id=<?= $id_post ?>" class="delete-link" onclick="return confirm('¿Estás seguro de borrar este post?')">🗑️ Borrar</a>
-                        </div>
+                        <?php else: ?>
+                            <button class="btn-report-post" data-id="<?= $id_post ?>">🚩 Reportar</button>
+                        <?php endif; ?>
                     </div>
-                <?php endif; ?>
+                </div>
             </div>
         </div>
 
@@ -320,5 +322,185 @@ foreach ($publicaciones as $post):
                 document.querySelectorAll('.comment-options-menu.show').forEach(menu => menu.classList.remove('show'));
             }
         });
+
+        // ── Modal de reporte ──────────────────────────────────────────────────
+        const reportModal = document.createElement('div');
+        reportModal.id = 'modal-reporte';
+        reportModal.innerHTML = `
+            <div class="modal-reporte-box">
+                <h3>🚩 Reportar contenido</h3>
+                <p class="modal-reporte-subtitle">Indica el motivo del reporte</p>
+                <div class="motivos-grid">
+                    <button class="motivo-btn" data-motivo="Contenido inapropiado">🔞 Inapropiado</button>
+                    <button class="motivo-btn" data-motivo="Spam o publicidad">📢 Spam</button>
+                    <button class="motivo-btn" data-motivo="Acoso o bullying">😠 Acoso</button>
+                    <button class="motivo-btn" data-motivo="Información falsa">❌ Falso</button>
+                    <button class="motivo-btn" data-motivo="Odio o discriminación">🚫 Odio</button>
+                    <button class="motivo-btn" data-motivo="Otro">💬 Otro</button>
+                </div>
+                <div class="modal-reporte-btns">
+                    <button id="btn-cancelar-reporte">Cancelar</button>
+                </div>
+            </div>
+        `;
+        reportModal.style.cssText = `
+            display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);
+            z-index:9999;align-items:center;justify-content:center;
+        `;
+        document.body.appendChild(reportModal);
+
+        let _reportTipo = null,
+            _reportIdContenido = null;
+
+        function abrirModalReporte(tipo, idContenido) {
+            _reportTipo = tipo;
+            _reportIdContenido = idContenido;
+            reportModal.style.display = 'flex';
+        }
+
+        reportModal.addEventListener('click', function(e) {
+            if (e.target === this) this.style.display = 'none';
+        });
+        document.getElementById('btn-cancelar-reporte').addEventListener('click', () => {
+            reportModal.style.display = 'none';
+        });
+
+        reportModal.querySelectorAll('.motivo-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const motivo = this.dataset.motivo;
+                const fd = new FormData();
+                fd.append('accion', 'reportar');
+                fd.append('tipo', _reportTipo);
+                fd.append('id_contenido', _reportIdContenido);
+                fd.append('motivo', motivo);
+                fetch('actions/reportar.php', {
+                        method: 'POST',
+                        body: fd
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        reportModal.style.display = 'none';
+                        const msg = document.createElement('div');
+                        msg.className = 'toast-reporte';
+                        msg.textContent = data.status === 'success' ?
+                            '✅ Reporte enviado' :
+                            (data.status === 'already' ? '⚠️ Ya reportaste este contenido' : '❌ Error al reportar');
+                        document.body.appendChild(msg);
+                        setTimeout(() => msg.remove(), 3000);
+                    });
+            });
+        });
+
+        // Delegar click en botones de reportar publicación
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn-report-post');
+            if (btn) {
+                e.stopPropagation();
+                document.querySelectorAll('.options-menu').forEach(m => m.classList.remove('show'));
+                abrirModalReporte('publicacion', btn.dataset.id);
+            }
+        });
     </script>
+    <style>
+        .modal-reporte-box {
+            background: var(--bg-card, #1e1e2e);
+            border-radius: 14px;
+            padding: 28px 32px;
+            width: 340px;
+            max-width: 95vw;
+            color: var(--texto-general, #fff);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-reporte-box h3 {
+            margin: 0 0 6px;
+            font-size: 18px;
+        }
+
+        .modal-reporte-subtitle {
+            margin: 0 0 18px;
+            font-size: 13px;
+            opacity: .7;
+        }
+
+        .motivos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .motivo-btn {
+            background: var(--bg-deep, #141420);
+            border: 1px solid var(--border-soft, #333);
+            color: var(--texto-general, #fff);
+            border-radius: 8px;
+            padding: 10px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background .15s, border-color .15s;
+            text-align: left;
+        }
+
+        .motivo-btn:hover {
+            background: var(--magenta-main, #e040fb);
+            border-color: var(--magenta-main, #e040fb);
+        }
+
+        .modal-reporte-btns {
+            text-align: right;
+        }
+
+        .modal-reporte-btns button {
+            background: transparent;
+            border: 1px solid var(--border-soft, #444);
+            color: var(--texto-general, #ccc);
+            border-radius: 7px;
+            padding: 7px 16px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .toast-reporte {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #222;
+            color: #fff;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 14px;
+            z-index: 10000;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            animation: fadeInUp .2s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .btn-report-post {
+            background: none;
+            border: none;
+            color: var(--texto-general, #ccc);
+            cursor: pointer;
+            font-size: 13px;
+            padding: 8px 12px;
+            width: 100%;
+            text-align: left;
+        }
+
+        .btn-report-post:hover {
+            color: #ff6b6b;
+        }
+    </style>
 <?php endif; ?>

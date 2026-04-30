@@ -135,6 +135,66 @@ $stats = $pdo->query("
         (SELECT COUNT(*) FROM comentarios) AS total_comentarios
     FROM usuarios
 ")->fetch(PDO::FETCH_ASSOC);
+
+// ── Reportes ─────────────────────────────────────────────────────────────────
+// Crear tabla de reportes si no existe
+try {
+    $pdo->exec("
+        CREATE TABLE IF NOT EXISTS reportes (
+            id_reporte       INT AUTO_INCREMENT PRIMARY KEY,
+            tipo             ENUM('publicacion','comentario') NOT NULL,
+            id_contenido     INT NOT NULL,
+            id_reportador    INT NOT NULL,
+            motivo           VARCHAR(255) NOT NULL DEFAULT 'Sin motivo especificado',
+            fecha_reporte    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            estado           ENUM('pendiente','revisado','descartado') NOT NULL DEFAULT 'pendiente',
+            id_moderador     INT NULL DEFAULT NULL,
+            notas_moderador  TEXT NULL DEFAULT NULL,
+            fecha_revision   DATETIME NULL DEFAULT NULL,
+            INDEX idx_tipo_id   (tipo, id_contenido),
+            INDEX idx_estado    (estado),
+            INDEX idx_reportador (id_reportador)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    ");
+} catch (PDOException $e) { /* ya existe */
+}
+
+$filtro_reportes = $_GET['estado_rep'] ?? 'pendiente';
+$estados_validos = ['pendiente', 'revisado', 'descartado', 'todos'];
+if (!in_array($filtro_reportes, $estados_validos)) $filtro_reportes = 'pendiente';
+
+$where_rep = $filtro_reportes !== 'todos' ? "WHERE r.estado = '$filtro_reportes'" : '';
+
+$reportes = $pdo->query("
+    SELECT
+        r.id_reporte, r.tipo, r.id_contenido, r.motivo, r.estado,
+        r.fecha_reporte, r.notas_moderador, r.fecha_revision,
+        u_rep.username  AS reporter_username,
+        u_rep.id_usuario AS reporter_id,
+        u_mod.username  AS moderador_username,
+        -- Datos del contenido reportado
+        CASE
+            WHEN r.tipo = 'publicacion' THEN (SELECT contenido_texto FROM publicaciones WHERE id_publicacion = r.id_contenido)
+            WHEN r.tipo = 'comentario'  THEN (SELECT texto           FROM comentarios    WHERE id_comentario  = r.id_contenido)
+        END AS contenido_texto,
+        CASE
+            WHEN r.tipo = 'publicacion' THEN (SELECT id_usuario FROM publicaciones WHERE id_publicacion = r.id_contenido)
+            WHEN r.tipo = 'comentario'  THEN (SELECT id_usuario FROM comentarios    WHERE id_comentario  = r.id_contenido)
+        END AS autor_id,
+        CASE
+            WHEN r.tipo = 'publicacion' THEN (SELECT u2.username FROM publicaciones p2 JOIN usuarios u2 ON u2.id_usuario=p2.id_usuario WHERE p2.id_publicacion = r.id_contenido)
+            WHEN r.tipo = 'comentario'  THEN (SELECT u2.username FROM comentarios   c2 JOIN usuarios u2 ON u2.id_usuario=c2.id_usuario WHERE c2.id_comentario  = r.id_contenido)
+        END AS autor_username
+    FROM reportes r
+    JOIN usuarios u_rep ON u_rep.id_usuario = r.id_reportador
+    LEFT JOIN usuarios u_mod ON u_mod.id_usuario = r.id_moderador
+    $where_rep
+    ORDER BY r.fecha_reporte DESC
+    LIMIT 100
+")->fetchAll(PDO::FETCH_ASSOC);
+
+$total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pendiente'")->fetchColumn();
+
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -705,6 +765,292 @@ $stats = $pdo->query("
         .btn-aplicar-sancion:hover {
             background: var(--magenta-glow);
         }
+
+        /* ── Tabs de navegación ──────────────────────────────────────── */
+        .admin-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 22px;
+            border-bottom: 2px solid var(--border-soft);
+            padding-bottom: 0;
+        }
+
+        .admin-tab {
+            padding: 10px 20px;
+            border-radius: 8px 8px 0 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-low, #888);
+            text-decoration: none;
+            position: relative;
+            transition: color .15s, background .15s;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-bottom: -2px;
+            border: 2px solid transparent;
+            border-bottom: none;
+        }
+
+        .admin-tab:hover {
+            color: var(--texto-general);
+            background: var(--bg-card, #1e1e2e);
+        }
+
+        .admin-tab.active {
+            color: var(--texto-general);
+            background: var(--bg-card, #1e1e2e);
+            border-color: var(--border-soft);
+            border-bottom-color: var(--bg-card, #1e1e2e);
+        }
+
+        .badge-count {
+            background: #e53935;
+            color: #fff;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 1px 7px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        /* ── Filtros de reportes ─────────────────────────────────────── */
+        .reportes-filtros {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .rep-filtro-btn {
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-low, #888);
+            text-decoration: none;
+            border: 1px solid var(--border-soft);
+            transition: all .15s;
+        }
+
+        .rep-filtro-btn:hover {
+            color: var(--texto-general);
+            border-color: var(--texto-general);
+        }
+
+        .rep-filtro-btn.activo {
+            background: var(--magenta-main, #e040fb);
+            color: #fff;
+            border-color: var(--magenta-main, #e040fb);
+        }
+
+        /* ── Lista de reportes ───────────────────────────────────────── */
+        .reportes-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .reporte-card {
+            background: var(--bg-card, #1e1e2e);
+            border-radius: 12px;
+            border: 1px solid var(--border-soft);
+            overflow: hidden;
+            transition: border-color .15s;
+        }
+
+        .reporte-card.estado-pendiente {
+            border-left: 3px solid #ff9800;
+        }
+
+        .reporte-card.estado-revisado {
+            border-left: 3px solid #4caf50;
+        }
+
+        .reporte-card.estado-descartado {
+            border-left: 3px solid #607d8b;
+            opacity: .7;
+        }
+
+        .reporte-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 18px;
+            border-bottom: 1px solid var(--border-soft);
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .reporte-tipo-badge {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .reporte-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reporte-fecha {
+            font-size: 12px;
+            opacity: .55;
+        }
+
+        .estado-pill-pendiente {
+            background: rgba(255, 152, 0, .15);
+            color: #ff9800;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-pill-revisado {
+            background: rgba(76, 175, 80, .15);
+            color: #4caf50;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .estado-pill-descartado {
+            background: rgba(96, 125, 139, .15);
+            color: #90a4ae;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .reporte-card-body {
+            padding: 16px 18px;
+        }
+
+        .reporte-contenido-box {
+            background: var(--bg-deep, #0f0f1a);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border-soft);
+        }
+
+        .reporte-texto {
+            margin: 0 0 6px;
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--texto-general);
+        }
+
+        .reporte-texto.eliminado {
+            color: #f44336;
+            font-style: italic;
+            font-size: 13px;
+        }
+
+        .reporte-autor {
+            font-size: 12px;
+            color: var(--magenta-main, #e040fb);
+            text-decoration: none;
+            opacity: .8;
+        }
+
+        .reporte-autor:hover {
+            opacity: 1;
+        }
+
+        .reporte-info-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            opacity: .75;
+        }
+
+        .reporte-motivo strong {
+            color: var(--texto-general);
+            opacity: 1;
+        }
+
+        .reporte-notas {
+            font-size: 13px;
+            color: var(--text-low, #888);
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, .04);
+            border-radius: 6px;
+        }
+
+        /* ── Botones de acción sobre reporte ─────────────────────────── */
+        .reporte-acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border-soft);
+        }
+
+        .btn-rep {
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: opacity .15s, transform .1s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-rep:hover {
+            opacity: .85;
+            transform: translateY(-1px);
+        }
+
+        .btn-rep-ver {
+            background: #2196f3;
+            color: #fff;
+        }
+
+        .btn-rep-descartar {
+            background: var(--bg-deep, #0f0f1a);
+            color: var(--text-low, #888);
+            border: 1px solid var(--border-soft);
+        }
+
+        .btn-rep-revisar {
+            background: #4caf50;
+            color: #fff;
+        }
+
+        .btn-rep-eliminar {
+            background: #f44336;
+            color: #fff;
+        }
+
+        .btn-rep-sancionar {
+            background: #ff9800;
+            color: #fff;
+        }
+
+        /* ── Empty state ─────────────────────────────────────────────── */
+        .reportes-empty {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: .5;
+        }
+
+        .reportes-empty p {
+            font-size: 16px;
+            margin-top: 12px;
+        }
     </style>
 </head>
 
@@ -764,121 +1110,251 @@ $stats = $pdo->query("
                 </div>
             </div>
 
-            <!-- Filtros -->
-            <div class="filtros">
-                <form method="GET" action="admin.php">
-                    <input type="text" name="q" value="<?= htmlspecialchars($buscar) ?>" placeholder="Buscar usuario, nombre o email...">
-                    <select name="rol">
-                        <option value="todos" <?= $filtro === 'todos' ? 'selected' : '' ?>>Todos los roles</option>
-                        <option value="usuario" <?= $filtro === 'usuario' ? 'selected' : '' ?>>Usuarios</option>
-                        <option value="moderador" <?= $filtro === 'moderador' ? 'selected' : '' ?>>Moderadores</option>
-                        <option value="admin" <?= $filtro === 'admin' ? 'selected' : '' ?>>Administradores</option>
-                    </select>
-                    <button type="submit" class="btn-filtrar">Buscar</button>
-                    <?php if ($buscar || $filtro !== 'todos'): ?>
-                        <a href="admin.php" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border-soft);color:var(--text-low);font-size:13px;text-decoration:none;">✕ Limpiar</a>
+            <!-- Tabs de navegación -->
+            <?php $tab_activa = $_GET['tab'] ?? 'usuarios'; ?>
+            <div class="admin-tabs">
+                <a href="admin.php?tab=usuarios" class="admin-tab <?= $tab_activa === 'usuarios' ? 'active' : '' ?>">
+                    👥 Usuarios
+                </a>
+                <a href="admin.php?tab=reportes&estado_rep=pendiente" class="admin-tab <?= $tab_activa === 'reportes' ? 'active' : '' ?>">
+                    🚩 Reportes
+                    <?php if ($total_pendientes > 0): ?>
+                        <span class="badge-count"><?= $total_pendientes ?></span>
                     <?php endif; ?>
-                </form>
+                </a>
             </div>
 
-            <!-- Tabla -->
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Usuario</th>
-                            <th>Rol</th>
-                            <th>Posts</th>
-                            <th>Seguidores</th>
-                            <th>Registro</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (empty($usuarios)): ?>
-                            <tr>
-                                <td colspan="6" class="no-results">No se encontraron usuarios.</td>
-                            </tr>
-                        <?php else: ?>
-                            <?php foreach ($usuarios as $u):
-                                $esBaneado = $u['verificado'] == -1;
-                                $esYo      = $u['id_usuario'] == $mi_id;
-                            ?>
-                                <tr>
-                                    <td>
-                                        <a href="perfil.php?id=<?= $u['id_usuario'] ?>" class="user-cell" style="text-decoration:none;color:inherit;">
-                                            <img src="<?= avatarSrc($u['foto_perfil'], $u['username']) ?>" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">
-                                            <div>
-                                                <div class="user-name">@<?= htmlspecialchars($u['username']) ?></div>
-                                                <div class="user-email"><?= htmlspecialchars($u['email']) ?></div>
-                                            </div>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        $ahora = new DateTime();
-                                        $tiene_ban  = !empty($u['ban_expira']) && ($u['ban_expira'] === '9999-01-01 00:00:00' || $ahora < new DateTime($u['ban_expira']));
-                                        $tiene_mute = !empty($u['mute_expira']) && $ahora < new DateTime($u['mute_expira']);
-                                        $tiene_sb   = (bool)(int)($u['shadowban'] ?? 0);
-                                        $tiene_sbc  = (bool)(int)($u['shadowban_comentarios'] ?? 0);
-                                        $tiene_lim  = (int)($u['limite_comentarios_dia'] ?? 0) > 0;
-                                        $hay_algo   = $tiene_ban || $tiene_sb || $tiene_mute || $tiene_sbc || $tiene_lim;
-                                        ?>
-                                        <?php if (!$hay_algo): ?>
-                                            <span class="admin-badge badge-<?= $u['rol'] ?>"><?= htmlspecialchars($u['rol']) ?></span>
+            <?php if ($tab_activa === 'reportes'): ?>
+                <!-- ═══════════════════ SECCIÓN REPORTES ═══════════════════ -->
+                <div class="reportes-filtros">
+                    <a href="admin.php?tab=reportes&estado_rep=pendiente" class="rep-filtro-btn <?= $filtro_reportes === 'pendiente' ? 'activo' : '' ?>">⏳ Pendientes</a>
+                    <a href="admin.php?tab=reportes&estado_rep=revisado" class="rep-filtro-btn <?= $filtro_reportes === 'revisado'  ? 'activo' : '' ?>">✅ Revisados</a>
+                    <a href="admin.php?tab=reportes&estado_rep=descartado" class="rep-filtro-btn <?= $filtro_reportes === 'descartado' ? 'activo' : '' ?>">🗑️ Descartados</a>
+                    <a href="admin.php?tab=reportes&estado_rep=todos" class="rep-filtro-btn <?= $filtro_reportes === 'todos'     ? 'activo' : '' ?>">📋 Todos</a>
+                </div>
+
+                <?php if (empty($reportes)): ?>
+                    <div class="reportes-empty">
+                        <span style="font-size:48px;">✅</span>
+                        <p>No hay reportes <?= $filtro_reportes !== 'todos' ? $filtro_reportes . 's' : '' ?>.</p>
+                    </div>
+                <?php else: ?>
+                    <div class="reportes-lista">
+                        <?php foreach ($reportes as $rep): ?>
+                            <div class="reporte-card estado-<?= $rep['estado'] ?>">
+                                <div class="reporte-card-header">
+                                    <div class="reporte-tipo-badge">
+                                        <?= $rep['tipo'] === 'publicacion' ? '📝 Publicación' : '💬 Comentario' ?>
+                                    </div>
+                                    <div class="reporte-meta">
+                                        <span class="reporte-estado estado-pill-<?= $rep['estado'] ?>">
+                                            <?php
+                                            $labels = ['pendiente' => '⏳ Pendiente', 'revisado' => '✅ Revisado', 'descartado' => '🗑️ Descartado'];
+                                            echo $labels[$rep['estado']] ?? $rep['estado'];
+                                            ?>
+                                        </span>
+                                        <span class="reporte-fecha"><?= htmlspecialchars(date('d/m/Y H:i', strtotime($rep['fecha_reporte']))) ?></span>
+                                    </div>
+                                </div>
+
+                                <div class="reporte-card-body">
+                                    <!-- Contenido reportado -->
+                                    <div class="reporte-contenido-box">
+                                        <?php if (!empty($rep['contenido_texto'])): ?>
+                                            <p class="reporte-texto"><?= nl2br(htmlspecialchars(mb_strimwidth($rep['contenido_texto'], 0, 200, '...'))) ?></p>
                                         <?php else: ?>
-                                            <div style="display:flex;flex-wrap:wrap;gap:3px;">
-                                                <?php if ($tiene_ban): ?>
-                                                    <span class="admin-badge badge-baneado"><?= $u['ban_expira'] === '9999-01-01 00:00:00' ? '🚫 Permanente' : '⏱️ Ban ' . date('d/m/y', strtotime($u['ban_expira'])) ?></span>
-                                                <?php endif; ?>
-                                                <?php if ($tiene_sb): ?>
-                                                    <span class="admin-badge badge-shadowban">👻 Shadow</span>
-                                                <?php endif; ?>
-                                                <?php if ($tiene_mute): ?>
-                                                    <span class="admin-badge badge-mute">🤐 Mute <?= date('d/m/y', strtotime($u['mute_expira'])) ?></span>
-                                                <?php endif; ?>
-                                                <?php if ($tiene_lim): ?>
-                                                    <span class="admin-badge badge-limite">🔇 <?= $u['limite_comentarios_dia'] ?>/día</span>
-                                                <?php endif; ?>
-                                                <?php if ($tiene_sbc): ?>
-                                                    <span class="admin-badge badge-shadowban-comentarios">🫥 Com.ocultos</span>
-                                                <?php endif; ?>
-                                            </div>
+                                            <p class="reporte-texto eliminado">⚠️ Este contenido ya fue eliminado.</p>
                                         <?php endif; ?>
-                                    </td>
-                                    <td><?= $u['num_posts'] ?></td>
-                                    <td><?= $u['num_seguidores'] ?></td>
-                                    <td><?= date('d/m/Y', strtotime($u['fecha_registro'])) ?></td>
-                                    <td>
-                                        <?php if ($esYo): ?>
-                                            <span style="font-size:12px;color:var(--text-low);">Eres tú</span>
-                                        <?php else: ?>
-                                            <div class="acciones">
-                                                <!-- Cambiar rol -->
-                                                <?php if ($_SESSION['rol'] === 'admin'): ?>
-                                                    <form method="POST" action="admin.php" class="rol-form">
-                                                        <input type="hidden" name="accion" value="cambiar_rol">
-                                                        <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
-                                                        <select name="nuevo_rol">
-                                                            <option value="usuario" <?= $u['rol'] === 'usuario'   ? 'selected' : '' ?>>Usuario</option>
-                                                            <option value="moderador" <?= $u['rol'] === 'moderador' ? 'selected' : '' ?>>Moderador</option>
-                                                            <option value="admin" <?= $u['rol'] === 'admin'     ? 'selected' : '' ?>>Admin</option>
-                                                        </select>
-                                                        <button type="submit" class="btn-accion btn-rol">✓</button>
-                                                    </form>
-                                                <?php endif; ?>
+                                        <?php if (!empty($rep['autor_username'])): ?>
+                                            <a href="perfil.php?id=<?= $rep['autor_id'] ?>" class="reporte-autor">
+                                                por @<?= htmlspecialchars($rep['autor_username']) ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
 
-                                                <!-- Sancionar -->
-                                                <?php if ($hay_algo): ?>
-                                                    <form method="POST" action="admin.php" style="display:inline;">
-                                                        <input type="hidden" name="accion" value="levantar_todo">
-                                                        <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
-                                                        <button type="submit" class="btn-accion btn-unban">✅ Levantar todo</button>
-                                                    </form>
-                                                <?php endif; ?>
+                                    <!-- Info del reporte -->
+                                    <div class="reporte-info-row">
+                                        <span>🚩 Reportado por <a href="perfil.php?id=<?= $rep['reporter_id'] ?>" class="reporte-autor">@<?= htmlspecialchars($rep['reporter_username']) ?></a></span>
+                                        <span class="reporte-motivo">Motivo: <strong><?= htmlspecialchars($rep['motivo']) ?></strong></span>
+                                    </div>
 
-                                                <button class="btn-accion btn-ban"
-                                                    onclick="abrirModalSancion(<?= $u['id_usuario'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>', {
+                                    <?php if ($rep['notas_moderador']): ?>
+                                        <div class="reporte-notas">
+                                            💬 <em><?= htmlspecialchars($rep['notas_moderador']) ?></em>
+                                            <?php if ($rep['moderador_username']): ?>
+                                                — @<?= htmlspecialchars($rep['moderador_username']) ?>
+                                                <?php if ($rep['fecha_revision']): ?>
+                                                    <span style="opacity:.6;font-size:11px;"> el <?= date('d/m/Y H:i', strtotime($rep['fecha_revision'])) ?></span>
+                                                <?php endif; ?>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Acciones (solo si pendiente y el contenido existe) -->
+                                    <?php if ($rep['estado'] === 'pendiente'): ?>
+                                        <div class="reporte-acciones">
+                                            <!-- Ver contenido -->
+                                            <?php if (!empty($rep['contenido_texto']) && $rep['tipo'] === 'publicacion'): ?>
+                                                <a href="post.php?id=<?= $rep['id_contenido'] ?>" class="btn-rep btn-rep-ver" title="Ver publicación">👁️ Ver</a>
+                                            <?php endif; ?>
+
+                                            <!-- Descartar -->
+                                            <button class="btn-rep btn-rep-descartar"
+                                                onclick="accionReporte(<?= $rep['id_reporte'] ?>, 'descartar')">
+                                                🗑️ Descartar
+                                            </button>
+
+                                            <!-- Marcar revisado -->
+                                            <button class="btn-rep btn-rep-revisar"
+                                                onclick="accionReporte(<?= $rep['id_reporte'] ?>, 'revisar')">
+                                                ✅ Revisado
+                                            </button>
+
+                                            <!-- Eliminar contenido -->
+                                            <?php if (!empty($rep['contenido_texto'])): ?>
+                                                <button class="btn-rep btn-rep-eliminar"
+                                                    onclick="accionReporte(<?= $rep['id_reporte'] ?>, 'eliminar_contenido')">
+                                                    ⛔ Eliminar contenido
+                                                </button>
+                                            <?php endif; ?>
+
+                                            <!-- Sancionar autor -->
+                                            <?php if (!empty($rep['autor_id']) && !empty($rep['autor_username'])): ?>
+                                                <button class="btn-rep btn-rep-sancionar"
+                                                    onclick="abrirModalSancion(
+                                        <?= $rep['autor_id'] ?>,
+                                        '<?= addslashes(htmlspecialchars($rep['autor_username'])) ?>',
+                                        {}
+                                    )">
+                                                    🔨 Sancionar @<?= htmlspecialchars($rep['autor_username']) ?>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <!-- ═══════════════════ SECCIÓN USUARIOS ═══════════════════ -->
+
+                <!-- Filtros -->
+                <div class="filtros">
+                    <form method="GET" action="admin.php">
+                        <input type="text" name="q" value="<?= htmlspecialchars($buscar) ?>" placeholder="Buscar usuario, nombre o email...">
+                        <select name="rol">
+                            <option value="todos" <?= $filtro === 'todos' ? 'selected' : '' ?>>Todos los roles</option>
+                            <option value="usuario" <?= $filtro === 'usuario' ? 'selected' : '' ?>>Usuarios</option>
+                            <option value="moderador" <?= $filtro === 'moderador' ? 'selected' : '' ?>>Moderadores</option>
+                            <option value="admin" <?= $filtro === 'admin' ? 'selected' : '' ?>>Administradores</option>
+                        </select>
+                        <button type="submit" class="btn-filtrar">Buscar</button>
+                        <?php if ($buscar || $filtro !== 'todos'): ?>
+                            <a href="admin.php" style="padding:8px 14px;border-radius:10px;border:1px solid var(--border-soft);color:var(--text-low);font-size:13px;text-decoration:none;">✕ Limpiar</a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+
+                <!-- Tabla -->
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Posts</th>
+                                <th>Seguidores</th>
+                                <th>Registro</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if (empty($usuarios)): ?>
+                                <tr>
+                                    <td colspan="6" class="no-results">No se encontraron usuarios.</td>
+                                </tr>
+                            <?php else: ?>
+                                <?php foreach ($usuarios as $u):
+                                    $esBaneado = $u['verificado'] == -1;
+                                    $esYo      = $u['id_usuario'] == $mi_id;
+                                ?>
+                                    <tr>
+                                        <td>
+                                            <a href="perfil.php?id=<?= $u['id_usuario'] ?>" class="user-cell" style="text-decoration:none;color:inherit;">
+                                                <img src="<?= avatarSrc($u['foto_perfil'], $u['username']) ?>" alt="" style="width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+                                                <div>
+                                                    <div class="user-name">@<?= htmlspecialchars($u['username']) ?></div>
+                                                    <div class="user-email"><?= htmlspecialchars($u['email']) ?></div>
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            $ahora = new DateTime();
+                                            $tiene_ban  = !empty($u['ban_expira']) && ($u['ban_expira'] === '9999-01-01 00:00:00' || $ahora < new DateTime($u['ban_expira']));
+                                            $tiene_mute = !empty($u['mute_expira']) && $ahora < new DateTime($u['mute_expira']);
+                                            $tiene_sb   = (bool)(int)($u['shadowban'] ?? 0);
+                                            $tiene_sbc  = (bool)(int)($u['shadowban_comentarios'] ?? 0);
+                                            $tiene_lim  = (int)($u['limite_comentarios_dia'] ?? 0) > 0;
+                                            $hay_algo   = $tiene_ban || $tiene_sb || $tiene_mute || $tiene_sbc || $tiene_lim;
+                                            ?>
+                                            <?php if (!$hay_algo): ?>
+                                                <span class="admin-badge badge-<?= $u['rol'] ?>"><?= htmlspecialchars($u['rol']) ?></span>
+                                            <?php else: ?>
+                                                <div style="display:flex;flex-wrap:wrap;gap:3px;">
+                                                    <?php if ($tiene_ban): ?>
+                                                        <span class="admin-badge badge-baneado"><?= $u['ban_expira'] === '9999-01-01 00:00:00' ? '🚫 Permanente' : '⏱️ Ban ' . date('d/m/y', strtotime($u['ban_expira'])) ?></span>
+                                                    <?php endif; ?>
+                                                    <?php if ($tiene_sb): ?>
+                                                        <span class="admin-badge badge-shadowban">👻 Shadow</span>
+                                                    <?php endif; ?>
+                                                    <?php if ($tiene_mute): ?>
+                                                        <span class="admin-badge badge-mute">🤐 Mute <?= date('d/m/y', strtotime($u['mute_expira'])) ?></span>
+                                                    <?php endif; ?>
+                                                    <?php if ($tiene_lim): ?>
+                                                        <span class="admin-badge badge-limite">🔇 <?= $u['limite_comentarios_dia'] ?>/día</span>
+                                                    <?php endif; ?>
+                                                    <?php if ($tiene_sbc): ?>
+                                                        <span class="admin-badge badge-shadowban-comentarios">🫥 Com.ocultos</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= $u['num_posts'] ?></td>
+                                        <td><?= $u['num_seguidores'] ?></td>
+                                        <td><?= date('d/m/Y', strtotime($u['fecha_registro'])) ?></td>
+                                        <td>
+                                            <?php if ($esYo): ?>
+                                                <span style="font-size:12px;color:var(--text-low);">Eres tú</span>
+                                            <?php else: ?>
+                                                <div class="acciones">
+                                                    <!-- Cambiar rol -->
+                                                    <?php if ($_SESSION['rol'] === 'admin'): ?>
+                                                        <form method="POST" action="admin.php" class="rol-form">
+                                                            <input type="hidden" name="accion" value="cambiar_rol">
+                                                            <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
+                                                            <select name="nuevo_rol">
+                                                                <option value="usuario" <?= $u['rol'] === 'usuario'   ? 'selected' : '' ?>>Usuario</option>
+                                                                <option value="moderador" <?= $u['rol'] === 'moderador' ? 'selected' : '' ?>>Moderador</option>
+                                                                <option value="admin" <?= $u['rol'] === 'admin'     ? 'selected' : '' ?>>Admin</option>
+                                                            </select>
+                                                            <button type="submit" class="btn-accion btn-rol">✓</button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <!-- Sancionar -->
+                                                    <?php if ($hay_algo): ?>
+                                                        <form method="POST" action="admin.php" style="display:inline;">
+                                                            <input type="hidden" name="accion" value="levantar_todo">
+                                                            <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
+                                                            <button type="submit" class="btn-accion btn-unban">✅ Levantar todo</button>
+                                                        </form>
+                                                    <?php endif; ?>
+
+                                                    <button class="btn-accion btn-ban"
+                                                        onclick="abrirModalSancion(<?= $u['id_usuario'] ?>, '<?= htmlspecialchars($u['username'], ENT_QUOTES) ?>', {
                                                 ban: <?= $tiene_ban ? 'true' : 'false' ?>,
                                                 ban_perm: <?= (!empty($u['ban_expira']) && $u['ban_expira'] === '9999-01-01 00:00:00') ? 'true' : 'false' ?>,
                                                 sb: <?= $tiene_sb ? 'true' : 'false' ?>,
@@ -886,42 +1362,45 @@ $stats = $pdo->query("
                                                 lim: <?= (int)($u['limite_comentarios_dia'] ?? 0) ?>,
                                                 sbc: <?= $tiene_sbc ? 'true' : 'false' ?>
                                             })">
-                                                    ⚡ Sancionar
-                                                </button>
+                                                        ⚡ Sancionar
+                                                    </button>
 
-                                                <!-- Eliminar (solo admin) -->
-                                                <?php if ($_SESSION['rol'] === 'admin'): ?>
-                                                    <form method="POST" action="admin.php" style="display:inline;"
-                                                        onsubmit="return confirm('¿Eliminar @<?= htmlspecialchars($u['username']) ?>? Esta acción es irreversible.')">
-                                                        <input type="hidden" name="accion" value="eliminar">
-                                                        <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
-                                                        <button type="submit" class="btn-accion btn-delete">🗑️</button>
-                                                    </form>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Paginación -->
-            <?php if ($total_pags > 1): ?>
-                <div class="paginacion">
-                    <?php
-                    $base = 'admin.php?' . http_build_query(array_filter(['q' => $buscar, 'rol' => $filtro !== 'todos' ? $filtro : '']));
-                    for ($i = 1; $i <= $total_pags; $i++):
-                        if ($i === $pagina): ?>
-                            <span class="current"><?= $i ?></span>
-                        <?php else: ?>
-                            <a href="<?= $base ?>&p=<?= $i ?>"><?= $i ?></a>
-                    <?php endif;
-                    endfor; ?>
+                                                    <!-- Eliminar (solo admin) -->
+                                                    <?php if ($_SESSION['rol'] === 'admin'): ?>
+                                                        <form method="POST" action="admin.php" style="display:inline;"
+                                                            onsubmit="return confirm('¿Eliminar @<?= htmlspecialchars($u['username']) ?>? Esta acción es irreversible.')">
+                                                            <input type="hidden" name="accion" value="eliminar">
+                                                            <input type="hidden" name="id_usuario" value="<?= $u['id_usuario'] ?>">
+                                                            <button type="submit" class="btn-accion btn-delete">🗑️</button>
+                                                        </form>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
-            <?php endif; ?>
+
+                <!-- Paginación -->
+                <?php if ($total_pags > 1): ?>
+                    <div class="paginacion">
+                        <?php
+                        $base = 'admin.php?' . http_build_query(array_filter(['q' => $buscar, 'rol' => $filtro !== 'todos' ? $filtro : '']));
+                        for ($i = 1; $i <= $total_pags; $i++):
+                            if ($i === $pagina): ?>
+                                <span class="current"><?= $i ?></span>
+                            <?php else: ?>
+                                <a href="<?= $base ?>&p=<?= $i ?>"><?= $i ?></a>
+                        <?php endif;
+                        endfor; ?>
+                    </div>
+                <?php endif; ?>
+
+            <?php endif; // fin tab usuarios 
+            ?>
 
         </div>
     </main>
@@ -1039,6 +1518,35 @@ $stats = $pdo->query("
     </div>
 
     <script>
+        // ── Acción sobre un reporte ───────────────────────────────────────────
+        function accionReporte(idReporte, accion) {
+            const confirmar = {
+                'eliminar_contenido': '⚠️ ¿Eliminar este contenido permanentemente? Esta acción no se puede deshacer.',
+                'descartar': '¿Descartar este reporte?',
+                'revisar': null
+            };
+            const msg = confirmar[accion];
+            if (msg && !confirm(msg)) return;
+
+            const fd = new FormData();
+            fd.append('accion', accion);
+            fd.append('id_reporte', idReporte);
+
+            fetch('actions/reportar.php', {
+                    method: 'POST',
+                    body: fd
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(() => alert('Error de red. Inténtalo de nuevo.'));
+        }
+
         function abrirModalSancion(id, username, sanciones) {
             document.getElementById('sancion-id-usuario').value = id;
             document.getElementById('modal-sancion-subtitle').textContent = '@' + username;

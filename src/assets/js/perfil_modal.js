@@ -167,7 +167,14 @@ document.addEventListener("DOMContentLoaded", () => {
                        <button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${currentPostId}">🗑️ Eliminar</button>
                        <button class="btn-cancel-comment-menu">Cancelar</button>
                    </div>
-               </div>` : "";
+               </div>`
+            : `<div class="comment-options-container">
+                   <button class="btn-comment-options">⋮</button>
+                   <div class="comment-options-menu">
+                       <button class="btn-report-comment" data-comentario="${c.id_comentario}">🚩 Reportar</button>
+                       <button class="btn-cancel-comment-menu">Cancelar</button>
+                   </div>
+               </div>`;
 
         const replyBtn = !esRespuesta
             ? `<button class="btn-reply-comment" data-comentario="${c.id_comentario}">↩ Responder</button>`
@@ -270,6 +277,29 @@ document.addEventListener("DOMContentLoaded", () => {
                             commentCountEl.textContent = data.totalComentarios;
                         }
                     });
+            });
+        }
+
+        // Reportar comentario
+        const reportEl = div.querySelector(".btn-report-comment");
+        if (reportEl) {
+            reportEl.addEventListener("click", function () {
+                const idComentario = this.dataset.comentario;
+                div.querySelector(".comment-options-menu").classList.remove("show");
+                if (typeof abrirModalReporte === "function") {
+                    abrirModalReporte("comentario", idComentario);
+                } else {
+                    // Fallback si el modal no está cargado todavía
+                    const motivo = prompt("Motivo del reporte (opcional):", "Contenido inapropiado") || "Sin motivo especificado";
+                    const fd = new FormData();
+                    fd.append("accion", "reportar");
+                    fd.append("tipo", "comentario");
+                    fd.append("id_contenido", idComentario);
+                    fd.append("motivo", motivo);
+                    fetch("actions/reportar.php", { method: "POST", body: fd })
+                        .then(r => r.json())
+                        .then(data => alert(data.message));
+                }
             });
         }
 
