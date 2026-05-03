@@ -187,14 +187,21 @@ foreach ($publicaciones as $post):
                 'https://ui-avatars.com/api/?name=' + encodeURIComponent(c.username) + '&background=444&color=fff';
 
             const liked = c.yaDioLike == 1 || c.yaDioLike === true;
-            const deleteBtn = (parseInt(c.id_usuario) === SESSION_USER_ID) ?
+            const deleteBtn = (parseInt(c.id_usuario) === (window.SESSION_USER_ID || 0)) ?
                 `<div class="comment-options-container">
-                 <button class="btn-comment-options" title="Opciones">⋮</button>
-                 <div class="comment-options-menu">
-                     <button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${postId}">🗑️ Eliminar</button>
-                     <button class="btn-cancel-comment-menu">Cancelar</button>
-                 </div>
-               </div>` : '';
+                     <button class="btn-comment-options" title="Opciones">⋮</button>
+                     <div class="comment-options-menu">
+                         <button class="btn-delete-comment" data-comentario="${c.id_comentario}" data-publicacion="${postId}">🗑️ Eliminar</button>
+                         <button class="btn-cancel-comment-menu">Cancelar</button>
+                     </div>
+                   </div>` :
+                `<div class="comment-options-container">
+                     <button class="btn-comment-options" title="Opciones">⋮</button>
+                     <div class="comment-options-menu">
+                         <button class="btn-report-comment" data-comentario="${c.id_comentario}">🚩 Reportar</button>
+                         <button class="btn-cancel-comment-menu">Cancelar</button>
+                     </div>
+                   </div>`;
 
             const replyBtn = !esRespuesta ?
                 `<button class="btn-reply-comment" data-comentario="${c.id_comentario}" data-post="${postId}">↩ Responder</button>` :
@@ -273,6 +280,15 @@ foreach ($publicaciones as $post):
                     optionsMenu.classList.toggle('show');
                 });
                 div.querySelector('.btn-cancel-comment-menu').addEventListener('click', () => optionsMenu.classList.remove('show'));
+            }
+
+            // Reportar comentario ajeno
+            const reportCommentEl = div.querySelector('.btn-report-comment');
+            if (reportCommentEl) {
+                reportCommentEl.addEventListener('click', function() {
+                    div.querySelector('.comment-options-menu').classList.remove('show');
+                    abrirModalReporte('comentario', this.dataset.comentario);
+                });
             }
 
             const deleteBtnEl = div.querySelector('.btn-delete-comment');
