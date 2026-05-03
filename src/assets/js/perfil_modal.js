@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const commentInput = document.getElementById("modal-comment-input");
     const sendCommentBtn = document.getElementById("modal-send-comment");
 
-    const SESSION_USER_ID = window.SESSION_USER_ID ?? 0;
+    const SESSION_USER_ID = window.SESSION_USER_ID ?? parseInt(document.querySelector('meta[name="user-id"]')?.content ?? '0');
     let currentPostId = null;
 
     // ── Abrir modal ──────────────────────────────────────────────────────────
@@ -286,20 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
             reportEl.addEventListener("click", function () {
                 const idComentario = this.dataset.comentario;
                 div.querySelector(".comment-options-menu").classList.remove("show");
-                if (typeof abrirModalReporte === "function") {
-                    abrirModalReporte("comentario", idComentario);
-                } else {
-                    // Fallback si el modal no está cargado todavía
-                    const motivo = prompt("Motivo del reporte (opcional):", "Contenido inapropiado") || "Sin motivo especificado";
-                    const fd = new FormData();
-                    fd.append("accion", "reportar");
-                    fd.append("tipo", "comentario");
-                    fd.append("id_contenido", idComentario);
-                    fd.append("motivo", motivo);
-                    fetch("actions/reportar.php", { method: "POST", body: fd })
-                        .then(r => r.json())
-                        .then(data => alert(data.message));
-                }
+                abrirModalReporte("comentario", idComentario);
             });
         }
 
@@ -316,4 +303,111 @@ document.addEventListener("DOMContentLoaded", () => {
     window.addEventListener("click", () => {
         document.querySelectorAll(".comment-options-menu.show").forEach(m => m.classList.remove("show"));
     });
+
+    // ── Modal de reporte (comentarios y publicaciones) ──────────────────────
+    (function () {
+        // Crear modal si no existe ya (post_card.php puede haberlo creado)
+        if (document.getElementById("modal-reporte")) return;
+
+        const reportModal = document.createElement("div");
+        reportModal.id = "modal-reporte";
+        reportModal.innerHTML = `
+            <div class="modal-reporte-box">
+                <h3>🚩 Reportar contenido</h3>
+                <p class="modal-reporte-subtitle">Indica el motivo del reporte</p>
+                <div class="motivos-grid">
+                    <button class="motivo-btn" data-motivo="Contenido inapropiado">🔞 Inapropiado</button>
+                    <button class="motivo-btn" data-motivo="Spam o publicidad">📢 Spam</button>
+                    <button class="motivo-btn" data-motivo="Acoso o bullying">😠 Acoso</button>
+                    <button class="motivo-btn" data-motivo="Información falsa">❌ Falso</button>
+                    <button class="motivo-btn" data-motivo="Odio o discriminación">🚫 Odio</button>
+                    <button class="motivo-btn" data-motivo="Otro">💬 Otro</button>
+                </div>
+                <div class="modal-reporte-btns">
+                    <button id="btn-cancelar-reporte">Cancelar</button>
+                </div>
+            </div>
+        `;
+        reportModal.style.cssText =
+            "display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);" +
+            "z-index:9999;align-items:center;justify-content:center;";
+
+        // Estilos del modal
+        const style = document.createElement("style");
+        style.textContent = `
+            #modal-reporte { display:none; }
+            #modal-reporte.open { display:flex !important; }
+            .modal-reporte-box {
+                background:#1e1e2e; border-radius:14px; padding:28px 32px;
+                width:340px; max-width:95vw; color:#fff;
+                box-shadow:0 8px 40px rgba(0,0,0,0.5);
+            }
+            .modal-reporte-box h3 { margin:0 0 6px; font-size:18px; }
+            .modal-reporte-subtitle { margin:0 0 18px; font-size:13px; opacity:.7; }
+            .motivos-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+            .motivo-btn {
+                background:#141420; border:1px solid #333; color:#fff;
+                border-radius:8px; padding:10px 8px; cursor:pointer;
+                font-size:13px; transition:background .15s,border-color .15s; text-align:left;
+            }
+            .motivo-btn:hover { background:#e040fb; border-color:#e040fb; }
+            .modal-reporte-btns { text-align:right; }
+            .modal-reporte-btns button {
+                background:transparent; border:1px solid #444; color:#ccc;
+                border-radius:7px; padding:7px 16px; cursor:pointer; font-size:13px;
+            }
+            .toast-reporte {
+                position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+                background:#222; color:#fff; border-radius:8px; padding:10px 20px;
+                font-size:14px; z-index:10000; box-shadow:0 4px 20px rgba(0,0,0,0.4);
+                animation:fadeInUp .2s ease;
+            }
+            @keyframes fadeInUp {
+                from { opacity:0; transform:translateX(-50%) translateY(10px); }
+                to   { opacity:1; transform:translateX(-50%) translateY(0); }
+            }
+        `;
+        document.head.appendChild(style);
+        document.body.appendChild(reportModal);
+
+        let _tipo = null, _idContenido = null;
+
+        window.abrirModalReporte = function (tipo, idContenido) {
+            _tipo = tipo;
+            _idContenido = idContenido;
+            reportModal.classList.add("open");
+        };
+
+        reportModal.addEventListener("click", function (e) {
+            if (e.target === this) this.classList.remove("open");
+        });
+        document.getElementById("btn-cancelar-reporte").addEventListener("click", () => {
+            reportModal.classList.remove("open");
+        });
+
+        reportModal.querySelectorAll(".motivo-btn").forEach(btn => {
+            btn.addEventListener("click", function () {
+                const motivo = this.dataset.motivo;
+                const fd = new FormData();
+                fd.append("accion", "reportar");
+                fd.append("tipo", _tipo);
+                fd.append("id_contenido", _idContenido);
+                fd.append("motivo", motivo);
+                fetch("actions/reportar.php", { method: "POST", body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        reportModal.classList.remove("open");
+                        const msg = document.createElement("div");
+                        msg.className = "toast-reporte";
+                        msg.textContent = data.status === "success"
+                            ? "✅ Reporte enviado"
+                            : (data.status === "already" ? "⚠️ Ya reportaste este contenido" : "❌ Error al reportar");
+                        document.body.appendChild(msg);
+                        setTimeout(() => msg.remove(), 3000);
+                    });
+            });
+        });
+    })();
+
+
 });

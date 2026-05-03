@@ -92,7 +92,8 @@ foreach ($publicaciones as $post):
 
 <?php if (empty($skip_post_card_js)): ?>
     <script>
-        const SESSION_USER_ID = <?= $id_usuario_sesion ?>;
+        window.SESSION_USER_ID = <?= $id_usuario_sesion ?>;
+        const SESSION_USER_ID = window.SESSION_USER_ID;
 
         document.querySelectorAll('.btn-toggle-comments').forEach(btn => {
             btn.addEventListener('click', function() {

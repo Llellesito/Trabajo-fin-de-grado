@@ -178,13 +178,25 @@ $reportes = $pdo->query("
             WHEN r.tipo = 'comentario'  THEN (SELECT texto           FROM comentarios    WHERE id_comentario  = r.id_contenido)
         END AS contenido_texto,
         CASE
+            WHEN r.tipo = 'publicacion' THEN (SELECT media FROM publicaciones WHERE id_publicacion = r.id_contenido)
+            ELSE NULL
+        END AS media,
+        CASE
             WHEN r.tipo = 'publicacion' THEN (SELECT id_usuario FROM publicaciones WHERE id_publicacion = r.id_contenido)
             WHEN r.tipo = 'comentario'  THEN (SELECT id_usuario FROM comentarios    WHERE id_comentario  = r.id_contenido)
         END AS autor_id,
         CASE
             WHEN r.tipo = 'publicacion' THEN (SELECT u2.username FROM publicaciones p2 JOIN usuarios u2 ON u2.id_usuario=p2.id_usuario WHERE p2.id_publicacion = r.id_contenido)
             WHEN r.tipo = 'comentario'  THEN (SELECT u2.username FROM comentarios   c2 JOIN usuarios u2 ON u2.id_usuario=c2.id_usuario WHERE c2.id_comentario  = r.id_contenido)
-        END AS autor_username
+        END AS autor_username,
+        CASE
+            WHEN r.tipo = 'comentario' THEN (SELECT id_publicacion FROM comentarios WHERE id_comentario = r.id_contenido)
+            ELSE NULL
+        END AS comentario_post_id,
+        CASE
+            WHEN r.tipo = 'comentario' THEN (SELECT contenido_texto FROM publicaciones WHERE id_publicacion = (SELECT id_publicacion FROM comentarios WHERE id_comentario = r.id_contenido))
+            ELSE NULL
+        END AS comentario_post_texto
     FROM reportes r
     JOIN usuarios u_rep ON u_rep.id_usuario = r.id_reportador
     LEFT JOIN usuarios u_mod ON u_mod.id_usuario = r.id_moderador
@@ -961,6 +973,63 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
             opacity: 1;
         }
 
+        .reporte-autor-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .reporte-autor-nombre {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--magenta-main, #e040fb);
+            text-decoration: none;
+        }
+
+        .reporte-autor-nombre:hover {
+            text-decoration: underline;
+        }
+
+        .reporte-tipo-inline {
+            font-size: 12px;
+            opacity: .5;
+            font-style: italic;
+        }
+
+        .reporte-post-contexto {
+            background: rgba(255, 255, 255, .03);
+            border-left: 3px solid var(--border-soft, #444);
+            border-radius: 0 8px 8px 0;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .reporte-contexto-label {
+            display: block;
+            font-size: 11px;
+            opacity: .5;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .reporte-contexto-texto {
+            margin: 0;
+            opacity: .7;
+            font-size: 13px;
+        }
+
+        .reporte-media {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 8px;
+            margin-top: 10px;
+            background: #000;
+        }
+
         .reporte-info-row {
             display: flex;
             align-items: center;
@@ -1012,11 +1081,6 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
         .btn-rep:hover {
             opacity: .85;
             transform: translateY(-1px);
-        }
-
-        .btn-rep-ver {
-            background: #2196f3;
-            color: #fff;
         }
 
         .btn-rep-descartar {
@@ -1158,17 +1222,42 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
                                 </div>
 
                                 <div class="reporte-card-body">
-                                    <!-- Contenido reportado -->
+                                    <!-- Contenido reportado inline -->
+                                    <?php if ($rep['tipo'] === 'comentario' && !empty($rep['comentario_post_texto'])): ?>
+                                        <div class="reporte-post-contexto">
+                                            <span class="reporte-contexto-label">📝 En la publicación:</span>
+                                            <p class="reporte-contexto-texto"><?= htmlspecialchars(mb_strimwidth($rep['comentario_post_texto'], 0, 120, '...')) ?></p>
+                                        </div>
+                                    <?php endif; ?>
                                     <div class="reporte-contenido-box">
-                                        <?php if (!empty($rep['contenido_texto'])): ?>
-                                            <p class="reporte-texto"><?= nl2br(htmlspecialchars(mb_strimwidth($rep['contenido_texto'], 0, 200, '...'))) ?></p>
-                                        <?php else: ?>
-                                            <p class="reporte-texto eliminado">⚠️ Este contenido ya fue eliminado.</p>
-                                        <?php endif; ?>
                                         <?php if (!empty($rep['autor_username'])): ?>
-                                            <a href="perfil.php?id=<?= $rep['autor_id'] ?>" class="reporte-autor">
-                                                por @<?= htmlspecialchars($rep['autor_username']) ?>
-                                            </a>
+                                            <div class="reporte-autor-header">
+                                                <a href="perfil.php?id=<?= $rep['autor_id'] ?>" class="reporte-autor-nombre">
+                                                    @<?= htmlspecialchars($rep['autor_username']) ?>
+                                                </a>
+                                                <?php if ($rep['tipo'] === 'comentario'): ?>
+                                                    <span class="reporte-tipo-inline">💬 comentó:</span>
+                                                <?php endif; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                        <?php if (!empty($rep['contenido_texto'])): ?>
+                                            <p class="reporte-texto"><?= nl2br(htmlspecialchars($rep['contenido_texto'])) ?></p>
+                                        <?php endif; ?>
+                                        <?php if (!empty($rep['media'])): ?>
+                                            <?php
+                                            $ext = strtolower(pathinfo($rep['media'], PATHINFO_EXTENSION));
+                                            $video_exts = ['mp4', 'webm', 'ogg', 'mov'];
+                                            ?>
+                                            <?php if (in_array($ext, $video_exts)): ?>
+                                                <video class="reporte-media" controls>
+                                                    <source src="data:video/<?= $ext ?>;base64,<?= base64_encode($rep['media']) ?>">
+                                                </video>
+                                            <?php else: ?>
+                                                <img class="reporte-media" src="data:image/jpeg;base64,<?= base64_encode($rep['media']) ?>" alt="Media del post">
+                                            <?php endif; ?>
+                                        <?php endif; ?>
+                                        <?php if (empty($rep['contenido_texto']) && empty($rep['media'])): ?>
+                                            <p class="reporte-texto eliminado">⚠️ Este contenido ya fue eliminado.</p>
                                         <?php endif; ?>
                                     </div>
 
@@ -1190,14 +1279,9 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
                                         </div>
                                     <?php endif; ?>
 
-                                    <!-- Acciones (solo si pendiente y el contenido existe) -->
+                                    <!-- Acciones (solo si pendiente) -->
                                     <?php if ($rep['estado'] === 'pendiente'): ?>
                                         <div class="reporte-acciones">
-                                            <!-- Ver contenido -->
-                                            <?php if (!empty($rep['contenido_texto']) && $rep['tipo'] === 'publicacion'): ?>
-                                                <a href="post.php?id=<?= $rep['id_contenido'] ?>" class="btn-rep btn-rep-ver" title="Ver publicación">👁️ Ver</a>
-                                            <?php endif; ?>
-
                                             <!-- Descartar -->
                                             <button class="btn-rep btn-rep-descartar"
                                                 onclick="accionReporte(<?= $rep['id_reporte'] ?>, 'descartar')">
@@ -1211,7 +1295,7 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
                                             </button>
 
                                             <!-- Eliminar contenido -->
-                                            <?php if (!empty($rep['contenido_texto'])): ?>
+                                            <?php if (!empty($rep['contenido_texto']) || !empty($rep['media'])): ?>
                                                 <button class="btn-rep btn-rep-eliminar"
                                                     onclick="accionReporte(<?= $rep['id_reporte'] ?>, 'eliminar_contenido')">
                                                     ⛔ Eliminar contenido
@@ -1232,6 +1316,7 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
                                         </div>
                                     <?php endif; ?>
                                 </div>
+
                             </div>
                         <?php endforeach; ?>
                     </div>
