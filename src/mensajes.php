@@ -27,25 +27,36 @@ $mi_avatar = avatarSrc($yo['foto_perfil'], $yo['username']);
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="shortcut icon" href="assets/images/8mangos.png">
     <style>
-        /* ══ RESET ══════════════════════════════════════════════════════════════ */
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
+        /* Reset base */
         body,
         html {
+            margin: 0;
+            padding: 0;
             height: 100%;
             overflow: hidden;
-            margin: 0;
+            background: #000;
         }
 
-        main {
+        /* Contenedor padre */
+        .app-wrap {
+            display: flex;
+            /* Aside izq, Chat der */
+            width: 100%;
             height: 100vh;
+        }
+
+        /* FIX ASIDE: No se encoge, respeta sus 220px */
+        aside.sidebar {
+            flex-shrink: 0 !important;
+            width: 220px !important;
+        }
+
+        /* Chat ocupa el resto */
+        .main-chat {
+            flex: 1;
+            display: flex;
             overflow: hidden;
-            padding: 0 !important;
-            align-items: stretch !important;
+            border-left: 1px solid #262626;
         }
 
         /* ══ LAYOUT ══════════════════════════════════════════════════════════════ */
@@ -59,7 +70,7 @@ $mi_avatar = avatarSrc($yo['foto_perfil'], $yo['username']);
 
         /* ══ SIDEBAR — Lista de conversaciones ══════════════════════════════════ */
         .conv-list-panel {
-            width: 300px;
+            width: 250px;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;

@@ -218,29 +218,11 @@ $total_pendientes = $pdo->query("SELECT COUNT(*) FROM reportes WHERE estado='pen
     <link rel="stylesheet" href="assets/css/variables.css">
     <link rel="shortcut icon" href="assets/images/8mangos.png">
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-main);
-            background: var(--bg-deep);
-            color: var(--texto-general);
-            margin: 0;
-        }
-
-        main {
-            display: flex;
-            align-items: flex-start;
-            min-height: 100vh;
-        }
 
         .admin-wrapper {
             flex: 1;
             padding: 28px 32px;
-            max-width: 1200px;
+            max-width: 1900px;
         }
 
         /* Cabecera */

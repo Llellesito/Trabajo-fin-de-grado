@@ -224,7 +224,7 @@
             </li>
             <li>
                 <a href="/miPerfil.php" class="nav-link">
-                    <span class="icon">🗣</span>
+                    <span class="icon">👤</span>
                     <span class="text"><?php echo htmlspecialchars($_SESSION['usuario']) ?></span>
                 </a>
             </li>
