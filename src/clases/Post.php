@@ -8,18 +8,22 @@ class Post
         $this->pdo = $pdo;
     }
 
+
     public function contarLikes($id_publicacion)
     {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM likes WHERE id_publicacion = ?");
         $stmt->execute([$id_publicacion]);
         return $stmt->fetchColumn();
     }
+
+
     public function haDadoLike($id_usuario, $id_publicacion)
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM likes WHERE id_usuario = ? AND id_publicacion = ?");
         $stmt->execute([$id_usuario, $id_publicacion]);
         return (bool)$stmt->fetch();
     }
+
 
     public function toggleLike($id_usuario, $id_publicacion)
     {
